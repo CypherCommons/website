@@ -25,6 +25,10 @@ python3 -m http.server 8000
 
 (Opening `index.html` directly via `file://` also works; fonts and images are all local.)
 
+## Deploy
+
+Hosted on GitHub Pages at the canonical domain **https://shroudwallet.com** (`CNAME` is committed; enable Pages on `main` / root in repo settings and point DNS apex `A` records at GitHub Pages IPs, `www` CNAME at `cyphercommons.github.io`). `shroudwallet.xyz` should 301-redirect to the `.com` at the DNS/registrar level.
+
 ## Notes
 
 - The download / app-store links (Direct APK, F-Droid, App Store, Play Store) and the project links in the footer (GitHub, Documentation, …) are intentionally inert — the app isn't published yet. They're marked with `data-noop` in `index.html`; remove that attribute and set real `href`s when ready.

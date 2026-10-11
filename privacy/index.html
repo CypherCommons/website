@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — Shroud</title>
+  <meta name="description" content="Shroud is a self-custodial Bitcoin wallet with no accounts. Read what stays on your device, what leaves it, and what we don't do." />
+  <link rel="canonical" href="https://shroudwallet.com/privacy/" />
+  <meta property="og:title" content="Privacy Policy — Shroud" />
+  <meta property="og:description" content="What stays on your device, what leaves it, and what Shroud doesn't do." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shroudwallet.com/privacy/" />
+  <link rel="icon" type="image/png" href="../assets/img/logo.png" />
+  <link rel="preload" href="../assets/fonts/ClashGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav-wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="nav__brand" href="../">
+        <img class="nav__logo" src="../assets/img/logo.png" alt="" width="26" height="26" />
+        <span>Shroud</span>
+      </a>
+      <div class="nav__menu" id="nav-menu">
+        <a href="../#features">Features</a>
+        <a href="../#how-it-works">How it works</a>
+        <a href="../#security">Security</a>
+        <a href="../#compare">Compare</a>
+        <a href="../#faq">FAQ</a>
+        <a class="nav__cta nav__cta--menu" href="../#download">Get Started</a>
+      </div>
+      <a class="nav__cta nav__cta--bar" href="../#download">Get Started</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle menu">
+        <span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article class="legal">
+      <header class="legal__head">
+        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Legal</p>
+        <h1 class="legal__title">Privacy Policy</h1>
+        <p class="legal__meta">Effective <time datetime="2026-10-11">October 11, 2026</time></p>
+        <p class="legal__lead">Shroud is a self-custodial Bitcoin wallet. You don't create an account, and your keys and recovery phrase never leave your phone. To work, the app talks to a few servers, listed below, and it sends crash reports unless you turn them off.</p>
+      </header>
+
+      <section class="legal__section" aria-labelledby="who-we-are">
+        <h2 id="who-we-are">Who we are</h2>
+        <p>Shroud is made by Cypher Commons LLC ("we", "us"). This policy covers the Shroud app for iOS and Android. For questions or requests about your data, email us at <a href="mailto:dev@shroudwallet.com">dev@shroudwallet.com</a>.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="on-device">
+        <h2 id="on-device">What stays on your device</h2>
+        <p>Everything that controls your money stays on your phone, and we never receive it:</p>
+        <ul>
+          <li><strong>Your recovery phrase and keys.</strong> They are kept in your phone's secure storage (the iOS Keychain or Android Keystore). Shroud scans for silent payments on the phone itself, so the keys never need to leave it.</li>
+          <li><strong>Your wallet data:</strong> balances, transactions, labels, contacts you save in Shroud, and your settings. They are kept in an encrypted database on the phone. Shroud doesn't read your phone's address book.</li>
+          <li><strong>Biometric data.</strong> Face ID, Touch ID and fingerprint unlock are handled by your phone's operating system. Shroud only learns whether the check succeeded.</li>
+        </ul>
+        <p>Android backups of the app are turned off. Your recovery phrase is the way to restore your wallet on another phone, so keep it somewhere safe: we can't recover it for you.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="leaves-device">
+        <h2 id="leaves-device">What leaves your device</h2>
+        <p>A Bitcoin wallet has to ask the network about your coins, so some information does leave your phone. None of it includes your name or your keys. Every service below can see your IP address unless the connection goes through Tor.</p>
+        <div class="legal__table-wrap" tabindex="0" role="region" aria-label="Services the app connects to">
+          <table class="legal__table legal__table--wide">
+            <thead>
+              <tr>
+                <th scope="col">Service</th>
+                <th scope="col">What it receives</th>
+                <th scope="col">When</th>
+                <th scope="col">Through Tor when Tor is on</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Shroud's silent-payment indexer (<code>indexer.shroudwallet.com</code>, plus test-network hosts and <code>.onion</code> addresses)</td>
+                <td>Your IP address; the ranges of blocks the app asks for (when you restore a wallet, the starting point shows roughly when it was created); transaction IDs you look up</td>
+                <td>Scanning for payments, restoring a wallet, tracking a payment</td>
+                <td>Yes, through its <code>.onion</code> address</td>
+              </tr>
+              <tr>
+                <td>An Electrum server: by default one run by Foundation Devices, lu.ke, BlueWallet, ACINQ or Bitaroo on the main network, by us on signet, or one you choose in settings</td>
+                <td>Your IP address; the addresses your coins are on and their transactions; fee estimates; the transactions you send</td>
+                <td>Showing balances and history, estimating fees, sending</td>
+                <td>Yes</td>
+              </tr>
+              <tr>
+                <td>An exchange-rate provider, depending on the currency you pick: CoinGecko, Coinbase, Kraken, Yadio, Exir, Coinpaprika or the National Bank of Romania</td>
+                <td>Your IP address; the currency</td>
+                <td>Showing amounts in your currency</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td>Bugsnag, if crash reporting is on</td>
+                <td>See <a href="#crash-reports">Crash reports</a></td>
+                <td>When the app crashes or reports an error, and once per launch</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td>Shroud's update server (<code>updates.shroudwallet.com</code>, hosted in Canada)</td>
+                <td>Your IP address; your platform; the app's version identifiers and update channel; the IDs of the update you run and of the one built in; a random ID the update library creates for this installation. The server keeps no logs.</td>
+                <td>Every launch, and when an update downloads</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td>The block explorer you choose (mempool.space by default)</td>
+                <td>Whatever your browser sends</td>
+                <td>Only when you tap a link to view a transaction; it opens in your browser</td>
+                <td>Not applicable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Tor.</strong> If you turn on Tor in settings (it needs a Tor app such as Orbot), connections to the indexer and the Electrum server go through Tor, which hides your IP address from them. Tor-only mode blocks those connections whenever Tor isn't running. Exchange rates, crash reports and update checks always use the regular internet.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="crash-reports">
+        <h2 id="crash-reports">Crash reports</h2>
+        <p>When the app crashes or hits an error it can't handle, it sends a report to <a href="https://www.bugsnag.com/" rel="noopener">Bugsnag</a>, a crash-reporting service run by SmartBear Software, so we can find and fix the problem. Crash reports are on by default. To turn them off, go to <strong>Settings → General → Privacy → Crash reports</strong>. From the next time the app starts, nothing is sent to Bugsnag.</p>
+        <p>While crash reports are on:</p>
+        <ul>
+          <li><strong>A report contains</strong> the error and where in the app's code it happened; your phone's model and operating system version; the app version; an identifier for your device that Bugsnag creates; and a short record of what the app was doing just before, such as starting up or moving to the background. Shroud removes transaction IDs, Bitcoin addresses and keys from its own error messages before they are reported.</li>
+          <li><strong>Each launch</strong> is also counted, so we can see what share of sessions crash.</li>
+        </ul>
+        <p>Bugsnag keeps reports for 7 days, then deletes them. We use them only to fix bugs.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="permissions">
+        <h2 id="permissions">Permissions</h2>
+        <p>Shroud asks for each of these when you first use a feature that needs it; internet access comes with installing the app. Nothing it reads through these permissions leaves your phone.</p>
+        <div class="legal__table-wrap" tabindex="0" role="region" aria-label="Permissions the app asks for">
+          <table class="legal__table">
+            <thead>
+              <tr>
+                <th scope="col">Permission</th>
+                <th scope="col">What Shroud uses it for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Camera</td>
+                <td>Scanning QR codes, such as a payment address. Camera images aren't stored.</td>
+              </tr>
+              <tr>
+                <td>Photos</td>
+                <td>Scanning a QR code from an image you pick, and saving a QR code image when you ask.</td>
+              </tr>
+              <tr>
+                <td>Face ID, Touch ID or fingerprint</td>
+                <td>Unlocking the app and confirming sensitive actions. Your phone does the check; Shroud only learns the result.</td>
+              </tr>
+              <tr>
+                <td>Files (Android)</td>
+                <td>Opening or saving files you choose.</td>
+              </tr>
+              <tr>
+                <td>Clipboard</td>
+                <td>Offering to paste a Bitcoin address you copied. You can turn this off in Settings → General → Privacy.</td>
+              </tr>
+              <tr>
+                <td>Screen capture detection (Android)</td>
+                <td>Hiding sensitive screens from screenshots and screen recordings.</td>
+              </tr>
+              <tr>
+                <td>Internet</td>
+                <td>Reaching the services listed above.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="legal__section" aria-labelledby="what-we-dont-do">
+        <h2 id="what-we-dont-do">What we don't do</h2>
+        <ul>
+          <li>We don't ask for an account, your name, email address or phone number.</li>
+          <li>We don't run analytics or track how you use the app, apart from the crash reports and launch counts above.</li>
+          <li>We don't show ads or use advertising identifiers.</li>
+          <li>We don't sell or share your information, or use it to track you across other apps and websites.</li>
+          <li>We can't see your balance, move your money, or freeze or reverse a transaction.</li>
+        </ul>
+      </section>
+
+      <section class="legal__section" aria-labelledby="app-stores">
+        <h2 id="app-stores">App stores and beta testing</h2>
+        <p>You get Shroud through Apple's App Store or TestFlight, or through Google Play. Apple and Google collect information when you download and use apps, under their own privacy policies (<a href="https://www.apple.com/legal/privacy/" rel="noopener">Apple</a>, <a href="https://policies.google.com/privacy" rel="noopener">Google</a>).</p>
+        <p>While Shroud is in beta:</p>
+        <ul>
+          <li><strong>TestFlight (iOS)</strong> shares your crash logs and usage information with us automatically, and any feedback you send, which may be linked to your name and the email address you were invited with. If you joined through a public link, we don't see your name or email address (<a href="https://www.apple.com/legal/privacy/data/en/test-flight/" rel="noopener">TestFlight &amp; Privacy</a>).</li>
+          <li><strong>Google Play testing (Android)</strong> shows us the email addresses on the testers list, and any private feedback you leave on the listing.</li>
+        </ul>
+        <p>We use this only to run the beta and fix problems.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="retention">
+        <h2 id="retention">How long we keep information</h2>
+        <ul>
+          <li><strong>Crash reports:</strong> 7 days at Bugsnag, then deleted.</li>
+          <li><strong>Update checks:</strong> not kept. Our update server writes no access logs.</li>
+          <li><strong>Indexer requests:</strong> not kept. Our indexer server writes no access logs.</li>
+          <li><strong>Beta testing:</strong> tester email addresses and feedback stay in App Store Connect and Play Console for as long as we run the beta.</li>
+        </ul>
+        <p>Electrum servers, exchange-rate providers and block explorers we don't run have their own policies, and we don't control what they keep. To limit what they see, turn on Tor or use your own Electrum server.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="where-information-goes">
+        <h2 id="where-information-goes">Where information goes</h2>
+        <p>SmartBear, which runs Bugsnag, is based in the United States, and crash reports may be stored there. Our update server is in Canada. The Electrum servers, indexer servers and exchange-rate providers you connect to may be anywhere in the world.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="your-rights">
+        <h2 id="your-rights">Your rights</h2>
+        <p>Depending on where you live, for example in the EU, the UK or California, you can ask to see, correct or delete information about you, or object to how it's used. We hold very little that is linked to you, but email us and we'll help. Crash reports rely on our legitimate interest in keeping the app working; you can object at any time by turning them off.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="children">
+        <h2 id="children">Children</h2>
+        <p>Shroud isn't meant for children under 16, and we don't knowingly collect information from them.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="changes">
+        <h2 id="changes">Changes to this policy</h2>
+        <p>We'll post any change on this page with a new effective date, and mention significant changes in the app's release notes. This policy takes effect on October 11, 2026.</p>
+      </section>
+
+      <section class="legal__section" aria-labelledby="contact">
+        <h2 id="contact">Contact</h2>
+        <p>Cypher Commons LLC, 30 N Gould St, STE R, Sheridan, WY 82801. Email: <a href="mailto:dev@shroudwallet.com">dev@shroudwallet.com</a>.</p>
+      </section>
+    </article>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__grid">
+      <div class="footer__brandcol">
+        <a class="footer__brand" href="../">
+          <img src="../assets/img/logo.png" alt="" width="26" height="26" />
+          <span>Shroud</span>
+        </a>
+      </div>
+      <nav class="footer__col" aria-label="Product">
+        <h4>Product</h4>
+        <a href="../#silent-payments">Silent payments</a>
+        <a href="../#features">Features</a>
+        <a href="../#compare">Compare</a>
+        <a href="../#download">Download</a>
+        <a href="../#roadmap">Roadmap</a>
+      </nav>
+      <nav class="footer__col" aria-label="Project">
+        <h4>Project</h4>
+        <a href="#" data-noop title="Coming soon">GitHub</a>
+        <a href="#" data-noop title="Coming soon">Documentation</a>
+        <a href="#" data-noop title="Coming soon">Build verification</a>
+        <a href="#" data-noop title="Coming soon">Security policy</a>
+        <a href="./" aria-current="page">Privacy policy</a>
+        <a href="#" data-noop title="Coming soon">MIT License</a>
+      </nav>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 SHROUD</p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

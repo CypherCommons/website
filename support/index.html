@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en" class="theme-auto">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Shroud Support</title>
+  <meta name="description" content="Get help with Shroud, the self-custodial Bitcoin wallet: contact us by email and find answers to common questions." />
+  <link rel="canonical" href="https://shroudwallet.com/support" />
+  <meta property="og:title" content="Shroud Support" />
+  <meta property="og:description" content="Contact the Shroud team and find answers to common questions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shroudwallet.com/support" />
+  <link rel="icon" type="image/png" href="../assets/img/logo.png" />
+  <link rel="preload" href="../assets/fonts/ClashGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="../assets/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav-wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="nav__brand" href="../">
+        <img class="nav__logo" src="../assets/img/logo.png" alt="" width="26" height="26" />
+        <span>Shroud</span>
+      </a>
+      <div class="nav__menu" id="nav-menu">
+        <a href="../#features">Features</a>
+        <a href="../#how-it-works">How it works</a>
+        <a href="../#security">Security</a>
+        <a href="../#compare">Compare</a>
+        <a href="../#faq">FAQ</a>
+        <a class="nav__cta nav__cta--menu" href="../#download">Get Started</a>
+      </div>
+      <a class="nav__cta nav__cta--bar" href="../#download">Get Started</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle menu">
+        <span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article class="legal support">
+      <header class="legal__head">
+        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Help</p>
+        <h1 class="legal__title">Shroud Support</h1>
+        <p class="legal__lead">Need help with Shroud? Email us, or check the answers to common questions below.</p>
+      </header>
+
+      <section class="support__contact" aria-labelledby="contact">
+        <h2 id="contact">Contact us</h2>
+        <div class="support__cards">
+          <div class="support__card support__card--primary">
+            <h3>Email</h3>
+            <p><a class="support__email" href="mailto:dev@shroudwallet.com">dev@shroudwallet.com</a></p>
+            <p>Describe the problem. Include your phone model and the Shroud app version, which you can find in Settings → About.</p>
+          </div>
+          <div class="support__card">
+            <h3>Bug reports and feature requests</h3>
+            <p>Open an issue on GitHub: <a href="https://github.com/CypherCommons/shroud/issues">github.com/<wbr>CypherCommons/<wbr>shroud/<wbr>issues</a></p>
+          </div>
+          <div class="support__card">
+            <h3>Security issues</h3>
+            <p>Email <a href="mailto:dev@shroudwallet.com?subject=Security">dev@shroudwallet.com</a> with "Security" in the subject. Please don't post security issues publicly.</p>
+          </div>
+        </div>
+      </section>
+
+      <aside class="callout" aria-labelledby="before-you-contact">
+        <h2 id="before-you-contact">Before you contact us</h2>
+        <ul>
+          <li>Shroud is self-custodial. We never see your balance, we can't move your funds, and we can't recover a lost recovery phrase.</li>
+          <li><strong>We will never ask for your 12-word recovery phrase.</strong> Anyone who asks for it is trying to steal your bitcoin.</li>
+        </ul>
+      </aside>
+
+      <section class="legal__section" aria-labelledby="faq">
+        <h2 id="faq">Frequently asked questions</h2>
+
+        <div class="support__qa">
+          <h3 id="backup">How do I back up my wallet?</h3>
+          <p>Go to <strong>Settings → Security → View recovery phrase</strong>. Write the 12 words on paper, in order, and keep them offline. Don't store them in photos, notes or the cloud.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="restore">How do I restore my wallet on a new phone?</h3>
+          <p>On the first screen, tap <strong>Restore Existing Wallet</strong> and enter your 12 words. You can also add the date you created the wallet (YYYY-MM-DD). It's optional, but it makes scanning faster.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="missing-payment">A payment hasn't shown up.</h3>
+          <p>Shroud scans the blockchain for your payments on your phone. New payments appear once scanning catches up. <strong>Settings → Network</strong> shows the sync status.</p>
+          <p>If the sender gave you a transaction ID, use the app's <strong>Track Payment</strong> feature to check it directly.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="lost-phone">I lost my phone.</h3>
+          <p>Restore your wallet on a new phone with your recovery phrase. If you lost both the phone and the recovery phrase, no one can recover the funds, including us.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="tor">Can I use Tor?</h3>
+          <p>Yes, on iPhone and Android. Install and start the Orbot app, then turn on <strong>Settings → Network → Connect Via Tor → Use Tor</strong>. Tor-Only Mode blocks connections whenever Tor isn't running.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="electrum">Can I use my own Electrum server?</h3>
+          <p>Yes. Go to <strong>Settings → Network → Change server</strong>.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="crash-reports">How do I turn off crash reports?</h3>
+          <p>Go to <strong>Settings → General → Privacy → Crash Reports</strong>. The change applies the next time you open Shroud.</p>
+        </div>
+
+        <div class="support__qa">
+          <h3 id="data">What data does Shroud collect?</h3>
+          <p>Read our <a href="../privacy/">privacy policy</a>.</p>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__grid">
+      <div class="footer__brandcol">
+        <a class="footer__brand" href="../">
+          <img src="../assets/img/logo.png" alt="" width="26" height="26" />
+          <span>Shroud</span>
+        </a>
+      </div>
+      <nav class="footer__col" aria-label="Product">
+        <h4>Product</h4>
+        <a href="../#silent-payments">Silent payments</a>
+        <a href="../#features">Features</a>
+        <a href="../#compare">Compare</a>
+        <a href="../#download">Download</a>
+        <a href="../#roadmap">Roadmap</a>
+      </nav>
+      <nav class="footer__col" aria-label="Project">
+        <h4>Project</h4>
+        <a href="https://github.com/CypherCommons/shroud">GitHub</a>
+        <a href="../privacy/">Privacy policy</a>
+        <a href="./" aria-current="page">Support</a>
+      </nav>
+    </div>
+    <div class="footer__bottom footer__bottom--legal">
+      <p>Shroud is made by Cypher Commons LLC, 30 N Gould St, STE R, Sheridan, WY 82801.</p>
+      <p>Last updated: <time datetime="2026-10-18">October 18, 2026</time></p>
+    </div>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

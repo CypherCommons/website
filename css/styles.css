@@ -1743,3 +1743,135 @@ code {
   .legal__section { margin-top: 36px; padding-top: 32px; }
   .legal__section h2 { font-size: 21px; }
 }
+
+/* ============================================================
+   SUPPORT PAGE
+   ============================================================ */
+/* Pages with .theme-auto on <html> follow the system light/dark setting
+   and use higher-contrast secondary text. */
+.theme-auto {
+  --text-40: rgba(245, 245, 247, 0.6);
+  --text-35: rgba(245, 245, 247, 0.6);
+  --text-34: rgba(245, 245, 247, 0.6);
+}
+@media (prefers-color-scheme: light) {
+  .theme-auto {
+    --bg: #f7f7f9;
+    --panel: #ffffff;
+    --panel-2: #ffffff;
+    --chip: #ececf0;
+    --text: #0c0c10;
+    --text-80: rgba(12, 12, 16, 0.8);
+    --text-55: rgba(12, 12, 16, 0.66);
+    --text-40: rgba(12, 12, 16, 0.62);
+    --text-35: rgba(12, 12, 16, 0.62);
+    --text-34: rgba(12, 12, 16, 0.62);
+    --lavender: #5b3fd6;
+    --w02: rgba(12, 12, 16, 0.02);
+    --w03: rgba(12, 12, 16, 0.03);
+    --w04: rgba(12, 12, 16, 0.04);
+    --w05: rgba(12, 12, 16, 0.05);
+    --w07: rgba(12, 12, 16, 0.08);
+    --w08: rgba(12, 12, 16, 0.08);
+    --w10: rgba(12, 12, 16, 0.1);
+    --w13: rgba(12, 12, 16, 0.13);
+    --w14: rgba(12, 12, 16, 0.14);
+    --w22: rgba(12, 12, 16, 0.22);
+    --w30: rgba(12, 12, 16, 0.3);
+  }
+  /* the nav pill stays dark in both themes */
+  .theme-auto .nav {
+    --text: #f5f5f7;
+    --w05: rgba(255, 255, 255, 0.05);
+    --w13: rgba(255, 255, 255, 0.13);
+    color: var(--text);
+  }
+  .theme-auto .legal p a,
+  .theme-auto .legal li a { text-decoration-color: rgba(91, 63, 214, 0.4); }
+  .theme-auto .legal p a:hover,
+  .theme-auto .legal li a:hover { color: var(--text); }
+  .theme-auto ::selection { background: rgba(139, 108, 255, 0.25); }
+}
+
+.support__contact { margin-top: 40px; }
+.support__contact h2,
+.callout h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.support__cards {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+.support__card {
+  padding: 20px 22px;
+  background: var(--w02);
+  border: 1px solid var(--w13);
+  border-radius: 14px;
+}
+.support__card--primary {
+  background: rgba(139, 108, 255, 0.06);
+  border-color: rgba(139, 108, 255, 0.45);
+}
+.support__card > * + * { margin-top: 8px; }
+.support__card h3 {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-55);
+}
+.legal p a.support__email {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(22px, 5vw, 28px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.legal p a.support__email:hover { color: var(--lavender); }
+.support p a { overflow-wrap: break-word; }
+
+.callout {
+  margin-top: 40px;
+  padding: 24px 24px 26px;
+  background: rgba(139, 108, 255, 0.08);
+  border: 1px solid rgba(139, 108, 255, 0.45);
+  border-left-width: 4px;
+  border-radius: 14px;
+}
+.callout ul { margin-top: 14px; }
+
+.legal__section > .support__qa { margin-top: 28px; }
+.support__qa > * + * { margin-top: 8px; }
+.support__qa h3 {
+  scroll-margin-top: 110px;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.footer__bottom--legal p {
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  color: var(--text-55);
+}
+.footer__bottom--legal p + p { margin-top: 4px; }
+
+@media (max-width: 560px) {
+  .support__contact h2,
+  .callout h2 { font-size: 21px; }
+  .support__card { padding: 18px; }
+  .callout { padding: 20px 18px 22px; }
+}

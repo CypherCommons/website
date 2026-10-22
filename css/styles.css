@@ -74,7 +74,9 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* `clip` (not `hidden`): hidden turns body into a scroll container, which breaks position: sticky */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 img { display: block; max-width: 100%; height: auto; }
@@ -240,13 +242,17 @@ code {
 /* ============================================================
    HERO
    ============================================================ */
-.hero {
+/* Shared starfield behind the hero text and the app showcase — one backdrop across
+   both sections so the split doesn't seam the background */
+.skybox {
   position: relative;
-  min-height: 900px;
-  padding: 180px 24px 0;
   overflow: clip;
 }
-.hero__bg {
+.hero {
+  position: relative;
+  padding: 180px 24px 0;
+}
+.skybox__bg {
   position: absolute;
   inset: 0;
   background-image:
@@ -256,7 +262,7 @@ code {
   background-position: center top, center top;
   pointer-events: none;
 }
-.hero__bg::after {
+.skybox__bg::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -339,8 +345,20 @@ code {
 }
 .btn--ghost:hover { border-color: var(--w30); color: #fff; }
 
-/* Phone stage + floating cards */
-.hero__stage {
+/* App showcase — the phone stage in its own section, right after the hero */
+.showcase {
+  position: relative;
+  padding: 0 24px;
+}
+.showcase__inner {
+  position: relative;
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.showcase__stage {
   position: relative;
   width: min(880px, 100%);
   margin-top: 70px;
@@ -349,7 +367,7 @@ code {
   justify-content: center;
 }
 /* soft fade of the phone's lower edge into the page background */
-.hero__stage::after {
+.showcase__stage::after {
   content: "";
   position: absolute;
   left: -80px;
@@ -365,6 +383,7 @@ code {
   width: 291px;
   height: 599px;
   padding: 11px;
+  transform: translateY(var(--py, 0px));
   background: #0b0b0e;
   border: 1px solid var(--w14);
   border-radius: 52px;
@@ -414,13 +433,40 @@ code {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   animation: card-float 7s ease-in-out infinite;
 }
-.hero-card--1 { left: 74px; top: 41px; transform: rotate(-0.8deg); }
-.hero-card--2 { right: 75px; top: 117px; transform: rotate(0.75deg); animation-delay: -1.8s; }
-.hero-card--3 { left: 42px; top: 360px; transform: rotate(-0.14deg); animation-delay: -3.4s; }
-.hero-card--4 { right: 90px; top: 405px; transform: rotate(0.55deg); animation-delay: -5.1s; }
+.hero-card--1 { left: 74px; top: 41px; transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(-0.8deg); }
+.hero-card--2 { right: 75px; top: 117px; transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(0.75deg); animation-delay: -1.8s; }
+.hero-card--3 { left: 42px; top: 360px; transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(-0.14deg); animation-delay: -3.4s; }
+.hero-card--4 { right: 90px; top: 405px; transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(0.55deg); animation-delay: -5.1s; }
 @keyframes card-float {
   0%, 100% { margin-top: 0; }
   50% { margin-top: -7px; }
+}
+
+/* Hero entrance — gated by .js on <html> so a no-JS visit still paints the static hero */
+.js .hero__title { animation: rise-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.js .hero__sub { animation: rise-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s backwards; }
+.js .hero__actions { animation: rise-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.16s backwards; }
+.js .phone { --rise: 64px; animation: rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards; }
+@keyframes rise-in {
+  from { opacity: 0; translate: 0 var(--rise, 26px); }
+  to { opacity: 1; translate: 0 0; }
+}
+@media (min-width: 881px) {
+  .js .hero-card {
+    /* the shorthand resets card-float, so re-list it; the second delay keeps each card's float phase */
+    animation:
+      hero-card-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) backwards,
+      card-float 7s ease-in-out infinite;
+    will-change: transform;
+  }
+  .js .hero-card--1 { --ex: -340px; --ey: -40px; animation-delay: 0.55s, 0s; }
+  .js .hero-card--2 { --ex: 340px; --ey: -40px; animation-delay: 0.7s, -1.8s; }
+  .js .hero-card--3 { --ex: -360px; --ey: 50px; animation-delay: 0.85s, -3.4s; }
+  .js .hero-card--4 { --ex: 360px; --ey: 60px; animation-delay: 1s, -5.1s; }
+  @keyframes hero-card-in {
+    from { opacity: 0; translate: var(--ex, 0px) var(--ey, 0px); }
+    to { opacity: 1; translate: 0 0; }
+  }
 }
 .hero-card__icon {
   display: grid;
@@ -452,7 +498,7 @@ code {
 /* Standards marquee */
 .standards {
   width: min(544px, 100%);
-  margin: 24px auto 0;
+  margin: 40px auto 0;
   padding-bottom: 60px;
 }
 .standards__label {
@@ -492,18 +538,18 @@ code {
 .standards__item--palatino { font-family: Palatino, "Palatino Linotype", serif; font-size: 15px; letter-spacing: -0.01em; }
 
 @media (max-width: 880px) {
-  .hero { padding-top: 140px; min-height: 0; }
-  .hero__stage::after { display: none; }
+  .hero { padding-top: 140px; }
+  .showcase__stage::after { display: none; }
   .hero-card { position: static; height: auto; min-height: 64px; transform: none; animation: none; }
-  .hero__stage {
+  .showcase__stage {
     min-height: 0;
     flex-direction: column;
     align-items: center;
     gap: 34px;
   }
-  .hero__stage .phone { order: -1; }
+  .showcase__stage .phone { order: -1; }
   .hero-card--1, .hero-card--2, .hero-card--3, .hero-card--4 { inset: auto; }
-  .hero__stage {
+  .showcase__stage {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
@@ -511,11 +557,11 @@ code {
     justify-content: center;
     gap: 12px;
   }
-  .hero__stage .phone { grid-column: 1 / -1; justify-self: center; margin-bottom: 22px; }
+  .showcase__stage .phone { grid-column: 1 / -1; justify-self: center; margin-bottom: 22px; }
   .hero-card { padding: 12px 14px; gap: 10px; }
 }
 @media (max-width: 560px) {
-  .hero__stage { grid-template-columns: minmax(0, 1fr); max-width: 320px; }
+  .showcase__stage { grid-template-columns: minmax(0, 1fr); max-width: 320px; }
   .hero__sub { font-size: 16px; line-height: 26px; }
 }
 
@@ -680,6 +726,34 @@ code {
 }
 .diagram__caption--grey { color: #8a8794; }
 .diagram__caption--purple { color: #9b80f3; }
+
+/* Looping sequencer — .diagram--seq is JS-added; without it (no JS / reduced motion)
+   the diagram keeps its fully-drawn static state */
+.diagram--seq .d-box--sm {
+  opacity: 0.25;
+  translate: 0 5px;
+  transition: opacity 0.45s ease, translate 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.diagram--seq .d-box--sm.is-on { opacity: 1; translate: 0 0; }
+.diagram--seq .diagram__lines path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.diagram--seq .diagram__lines path.is-on { stroke-dashoffset: 0; }
+.diagram--seq .d-box--addr {
+  opacity: 0.35;
+  border-color: #23232e;
+  transition: opacity 0.45s ease, border-color 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.diagram--seq .d-box--addr.is-on { opacity: 1; border-color: #3a3a48; }
+.diagram--seq .d-box--addr.is-hot { border-color: #55545f; transform: scale(1.03); }
+.diagram--seq .d-box--addr.is-hot2 { border-color: #8a8794; transform: scale(1.06); }
+.diagram--seq .d-box--sp {
+  opacity: 0.4;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.diagram--seq .d-box--sp.is-on { opacity: 1; transform: scale(1.03); }
 
 @media (max-width: 880px) {
   .diagram { grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 28px 20px; }
@@ -854,6 +928,8 @@ code {
   border-radius: 2px;
   background: var(--accent);
 }
+/* JS ticker takes over from the ambient keyframe scroll */
+.scanfeed--live .scanfeed__list { animation: none; transform: translateY(0); }
 
 /* contacts */
 .contacts {
@@ -871,6 +947,7 @@ code {
   background: var(--w02);
   border: 1px solid var(--w07);
   border-radius: 12px;
+  transition: background 0.4s ease, border-color 0.4s ease;
 }
 .contact--active {
   background: rgba(139, 108, 255, 0.1);
@@ -915,6 +992,7 @@ code {
   line-height: 13.6px;
   color: var(--text-55);
   white-space: nowrap;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 .contact__pill--bright { border-color: var(--w30); color: var(--text); }
 
@@ -967,6 +1045,23 @@ code {
   letter-spacing: 0.04em;
   color: #e9e5ff;
 }
+
+/* Merge/divide loop — states are JS-toggled; without them the bar keeps its static divided look */
+.split__seg--b,
+.split__amounts span {
+  transition: translate 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease, border-color 0.55s ease;
+}
+.split__amounts { position: relative; }
+.split__total {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+.split--merged .split__seg--b { translate: -2.7px 0; opacity: 1; border-color: transparent; }
+.split--merged .split__amounts span:not(.split__total) { opacity: 0; translate: 0 5px; }
+.split--merged .split__total { opacity: 1; }
+.split--apart .split__seg--b { translate: 9px 0; }
 
 @media (max-width: 880px) {
   .bento { grid-template-columns: minmax(0, 1fr); }
@@ -1175,6 +1270,40 @@ code {
   .minicard { min-height: 240px; }
   .minicard__box--bright { min-width: 0; }
 }
+
+/* Pinned scrollytelling — .how--pinned is JS-added (desktop + tall viewport + motion OK);
+   without it the stacked layout above is the no-JS / mobile / reduced-motion state */
+.how--pinned .how__track { height: 460vh; }
+.how--pinned .how__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: clip;
+}
+.how--pinned .step.reveal { opacity: 1; transform: none; transition: none; }
+.how--pinned .step {
+  position: absolute;
+  inset: 0;
+  padding: 120px 0 48px; /* clears the fixed nav pill */
+  border-top: 0;
+  pointer-events: none;
+}
+.how--pinned .step__text {
+  grid-column: 1;
+  grid-row: 1;
+  order: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.how--pinned .step__visual {
+  grid-column: 2;
+  grid-row: 1;
+  order: 0;
+  will-change: transform;
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
+}
+.how--pinned .step:not(.step--flip) .step__num { text-align: left; }
 
 /* ============================================================
    TRUST GRID — what we don't do

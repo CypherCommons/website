@@ -15,6 +15,7 @@
   <link rel="preload" href="assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/styles.css" />
+  <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -43,8 +44,9 @@
 
   <main id="main">
     <!-- ============ HERO ============ -->
+    <div class="skybox">
+    <div class="skybox__bg" aria-hidden="true"></div>
     <section class="hero" id="top">
-      <div class="hero__bg" aria-hidden="true"></div>
       <div class="hero__inner">
         <h1 class="hero__title">
           <span class="hero__title-metal">Private Bitcoin payments.</span>
@@ -58,8 +60,13 @@
           </a>
           <a class="btn btn--ghost" href="#how-it-works">How it works</a>
         </div>
+      </div>
+    </section>
 
-        <div class="hero__stage">
+    <!-- ============ APP SHOWCASE ============ -->
+    <section class="showcase" aria-label="Shroud app preview">
+      <div class="showcase__inner">
+        <div class="showcase__stage">
           <div class="phone" aria-label="Shroud wallet app on a phone">
             <div class="phone__screen">
               <img src="assets/img/phone-screen.png" alt="Shroud wallet home screen showing a 0.00004511 BTC balance, Request and Pay buttons, and a list of unlinkable silent-payment transactions" width="269" height="574" />
@@ -127,6 +134,7 @@
         </div>
       </div>
     </section>
+    </div>
 
     <!-- ============ THE ADDRESS PROBLEM ============ -->
     <section class="section demo" id="silent-payments">
@@ -146,9 +154,9 @@
               <span class="d-box d-box--sm">payment 3</span>
             </div>
             <svg class="diagram__lines" viewBox="0 0 180 110" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M0 13 C90 13 110 55 180 55" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 H180" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
-              <path d="M0 97 C90 97 110 55 180 55" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
+              <path d="M0 13 C90 13 110 55 180 55" pathLength="1" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
+              <path d="M0 55 H180" pathLength="1" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
+              <path d="M0 97 C90 97 110 55 180 55" pathLength="1" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
             </svg>
             <div class="diagram__col diagram__col--center">
               <span class="d-box d-box--addr">
@@ -174,14 +182,16 @@
             </div>
             <svg class="diagram__lines" viewBox="0 0 180 110" preserveAspectRatio="none" aria-hidden="true">
               <defs>
-                <linearGradient id="dgrad" x1="0" y1="0" x2="1" y2="0">
+                <!-- userSpaceOnUse: the default objectBoundingBox units break on the perfectly
+                     horizontal middle path (zero-height bbox = gradient not rendered) -->
+                <linearGradient id="dgrad" gradientUnits="userSpaceOnUse" x1="0" y1="55" x2="180" y2="55">
                   <stop offset="0" stop-color="#8A6CF0"/>
                   <stop offset="1" stop-color="#8A6CF0" stop-opacity=".25"/>
                 </linearGradient>
               </defs>
-              <path d="M0 55 C90 55 110 13 180 13" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 H180" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 C90 55 110 97 180 97" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
+              <path d="M0 55 C90 55 110 13 180 13" pathLength="1" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
+              <path d="M0 55 H180" pathLength="1" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
+              <path d="M0 55 C90 55 110 97 180 97" pathLength="1" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
             </svg>
             <div class="diagram__col">
               <span class="d-box d-box--sm">bc1p…a9f3</span>
@@ -202,7 +212,7 @@
         <p class="section__sub">Three things made possible by putting silent payments at the core of the wallet — not bolted on.</p>
       </div>
 
-      <div class="bento">
+      <div class="bento" data-stagger>
         <article class="bento__card bento__card--hl reveal">
           <h3 class="bento__title">
             <span class="bento__icon" aria-hidden="true">
@@ -240,20 +250,20 @@
           <p class="bento__body">Save someone's SP address once, pay them forever. Every payment still lands on a different on-chain address and none of them are linkable. Only possible with silent payments.</p>
           <div class="bento__visual bento__visual--contacts">
             <div class="contacts" aria-hidden="true">
-              <div class="contact contact--active">
+              <div class="contact contact--active" data-count="1">
                 <span class="contact__avatar">DW</span>
                 <span class="contact__meta"><strong>David W.</strong><small>sp1qq…k2f4 · saved once</small></span>
                 <span class="contact__pill contact__pill--bright">✓ paid just now</span>
               </div>
-              <div class="contact">
+              <div class="contact" data-count="4">
                 <span class="contact__avatar">MA</span>
                 <span class="contact__meta"><strong>Maria A.</strong><small>sp1qq…9dh7 · saved once</small></span>
                 <span class="contact__pill">4 payments</span>
               </div>
-              <div class="contact">
+              <div class="contact" data-count="12">
                 <span class="contact__avatar">RN</span>
                 <span class="contact__meta"><strong>Ranch Node Co-op</strong><small>sp1qq…m3x1 · saved once</small></span>
-                <span class="contact__pill">monthly</span>
+                <span class="contact__pill">12 payments</span>
               </div>
             </div>
           </div>
@@ -274,6 +284,7 @@
                 <span class="split__seg split__seg--b"></span>
               </div>
               <div class="split__amounts">
+                <span class="split__total">0.00050000</span>
                 <span>0.00029434</span>
                 <span>0.00020566</span>
               </div>
@@ -292,6 +303,8 @@
         <p class="section__sub">Four steps, zero interaction — the protocol behind the calm.</p>
       </div>
 
+      <div class="how__track">
+      <div class="how__stage">
       <div class="step reveal">
         <div class="step__visual">
           <div class="minicard" aria-hidden="true">
@@ -363,6 +376,8 @@
           </div>
         </div>
       </div>
+      </div>
+      </div>
     </section>
 
     <!-- ============ PRIVACY & TRUST ============ -->
@@ -373,7 +388,7 @@
         <p class="section__sub">Self-custody, no accounts, and no analytics or tracking. Where a protection has limits, we say so — credibility is the product.</p>
       </div>
 
-      <div class="trust__grid">
+      <div class="trust__grid" data-stagger>
         <article class="trust__item reveal">
           <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11.38 1.08l-1.09 1.09m0 0l1.63 1.62-1.9 1.9-1.62-1.63m1.89-1.89L8.4 4.06M6.17 6.29a2.97 2.97 0 1 1-4.21 4.21 2.97 2.97 0 0 1 4.2-4.21zm0 0L8.4 4.06" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Non-custodial, always</h3>
           <p>Keys are generated and stored on your device and never leave it. Your coins are yours — Shroud can't freeze, seize, or lose them.</p>
@@ -410,7 +425,7 @@
         <p class="security__sub">Privacy tools that overpromise get people hurt. Here is exactly what Shroud protects against — and what it can't.</p>
       </div>
 
-      <div class="security__cols">
+      <div class="security__cols" data-stagger>
         <div class="threat threat--yes reveal">
           <h3>✓ Protects against</h3>
           <ul>

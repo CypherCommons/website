@@ -10,7 +10,7 @@ Plain HTML + CSS + a little vanilla JS — no build step, no dependencies.
 index.html        # single-page site (all sections)
 privacy/index.html # privacy policy, served at /privacy/
 css/styles.css    # design tokens + components + responsive rules
-js/main.js        # mobile nav, accordions, copy button, scroll reveals
+js/main.js        # mobile nav, accordions, copy button, scroll reveals, scroll-driven motion (hero, diagram, bento, how-it-works)
 assets/fonts/     # self-hosted Clash Grotesk, Inter, JetBrains Mono (variable woff2)
 assets/img/       # images exported from the Figma design
 ```
@@ -35,4 +35,5 @@ Hosted on GitHub Pages at the canonical domain **https://shroudwallet.com** (`CN
 - The download / app-store links (Direct APK, F-Droid, App Store, Play Store) and the project links in the footer (GitHub, Documentation, …) are intentionally inert — the app isn't published yet. They're marked with `data-noop` in `index.html`; remove that attribute and set real `href`s when ready.
 - Nav links map to on-page sections (`#features`, `#how-it-works`, `#security`, `#compare`, `#faq`); "Get Started" and "Download Shroud" scroll to the download section.
 - `privacy/index.html` is a static copy of the privacy policy written in Claude Docs ("Shroud Privacy Policy"). When the policy changes, update the HTML, the "Effective" date, and the `lastmod` in `sitemap.xml`. Keep the homepage's privacy claims consistent with it.
-- Animations (scroll reveals, marquee, scan line, floating cards) respect `prefers-reduced-motion`.
+- Animations (scroll reveals, marquee, scan line, floating cards, hero/diagram/bento loops, the pinned "How a silent payment finds you" section) respect `prefers-reduced-motion`; with JS off, or at ≤880px / <700px viewport height, the pinned and scroll-linked effects fall back to the static layout. Timing constants live at the top of each module in `js/main.js`.
+- `body` uses `overflow-x: clip` (with an `overflow-x: hidden` fallback) — `hidden` on `body` silently breaks `position: sticky`, which the pinned how-it-works section depends on.

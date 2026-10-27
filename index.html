@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Shroud — Private Bitcoin payments. One address.</title>
   <meta name="description" content="Receive Bitcoin to a single, reusable address that produces a unique, unlinkable output on-chain for every payment — powered by silent payments, on by default." />
+  <meta name="theme-color" content="#050506" />
   <link rel="canonical" href="https://shroudwallet.com/" />
   <meta property="og:title" content="Shroud — Private Bitcoin payments. One address." />
   <meta property="og:description" content="Receive to a single, reusable address that produces a unique, unlinkable output on-chain for every payment — powered by silent payments, on by default." />
@@ -13,647 +14,711 @@
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="preload" href="assets/fonts/ClashGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="assets/fonts/JetBrainsMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    (function (root) {
+      root.classList.add("js");
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        root.classList.add("motion", "intro");
+        // never leave the hero hidden if the intro doesn't run
+        setTimeout(function () { root.classList.remove("intro"); }, 3500);
+      }
+    })(document.documentElement);
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./assets/vendor/three/three.module.min.js",
+        "three/addons/": "./assets/vendor/three/addons/"
+      }
+    }
+  </script>
 </head>
 <body>
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="m-logo" viewBox="88 88 336 336"><path fill-rule="evenodd" d="M223 88h66a135 135 0 0 1 135 135v66a135 135 0 0 1-135 135h-66A135 135 0 0 1 88 289v-66A135 135 0 0 1 223 88zM223 118a105 105 0 0 0-105 105v66a105 105 0 0 0 105 105h66a105 105 0 0 0 105-105v-66a105 105 0 0 0-105-105z"/><path d="M205 172h140l-15 23 82 55v56zM307 340H167l15-23-82-55v-56z"/></symbol>
+    <symbol id="m-ring" viewBox="88 88 336 336"><path fill-rule="evenodd" d="M223 88h66a135 135 0 0 1 135 135v66a135 135 0 0 1-135 135h-66A135 135 0 0 1 88 289v-66A135 135 0 0 1 223 88zM223 118a105 105 0 0 0-105 105v66a105 105 0 0 0 105 105h66a105 105 0 0 0 105-105v-66a105 105 0 0 0-105-105z"/></symbol>
+    <symbol id="m-band" viewBox="0 0 64 24"><path d="M0 0h44l-4 6 24 16v2H34z"/></symbol>
+    <symbol id="i-download-simple" viewBox="0 0 256 256"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 256 256"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 256 256"><path d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z"/></symbol>
+    <symbol id="i-arrow-down-left" viewBox="0 0 256 256"><path d="M197.66,69.66,83.31,184H168a8,8,0,0,1,0,16H64a8,8,0,0,1-8-8V88a8,8,0,0,1,16,0v84.69L186.34,58.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></symbol>
+    <symbol id="i-magnifying-glass" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></symbol>
+    <symbol id="i-address-book" viewBox="0 0 256 256"><path d="M83.19,174.4a8,8,0,0,0,11.21-1.6,52,52,0,0,1,83.2,0,8,8,0,1,0,12.8-9.6A67.88,67.88,0,0,0,163,141.51a40,40,0,1,0-53.94,0A67.88,67.88,0,0,0,81.6,163.2,8,8,0,0,0,83.19,174.4ZM112,112a24,24,0,1,1,24,24A24,24,0,0,1,112,112Zm96-88H64A16,16,0,0,0,48,40V64H32a8,8,0,0,0,0,16H48v40H32a8,8,0,0,0,0,16H48v40H32a8,8,0,0,0,0,16H48v24a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V40A16,16,0,0,0,208,24Zm0,192H64V40H208Z"/></symbol>
+    <symbol id="i-arrows-split" viewBox="0 0 256 256"><path d="M229.66,189.66l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L184,196.69V139.31l-56-56-56,56v57.38l18.34-18.35a8,8,0,0,1,11.32,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L56,196.69V136a8,8,0,0,1,2.34-5.66L120,68.69V24a8,8,0,0,1,16,0V68.69l61.66,61.65A8,8,0,0,1,200,136v60.69l18.34-18.35a8,8,0,0,1,11.32,11.32Z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 256 256"><path d="M216.57,39.43A80,80,0,0,0,83.91,120.78L28.69,176A15.86,15.86,0,0,0,24,187.31V216a16,16,0,0,0,16,16H72a8,8,0,0,0,8-8V208H96a8,8,0,0,0,8-8V184h16a8,8,0,0,0,5.66-2.34l9.56-9.57A79.73,79.73,0,0,0,160,176h.1A80,80,0,0,0,216.57,39.43ZM224,98.1c-1.09,34.09-29.75,61.86-63.89,61.9H160a63.7,63.7,0,0,1-23.65-4.51,8,8,0,0,0-8.84,1.68L116.69,168H96a8,8,0,0,0-8,8v16H72a8,8,0,0,0-8,8v16H40V187.31l58.83-58.82a8,8,0,0,0,1.68-8.84A63.72,63.72,0,0,1,96,95.92c0-34.14,27.81-62.8,61.9-63.89A64,64,0,0,1,224,98.1ZM192,76a12,12,0,1,1-12-12A12,12,0,0,1,192,76Z"/></symbol>
+    <symbol id="i-identification-card" viewBox="0 0 256 256"><path d="M200,112a8,8,0,0,1-8,8H152a8,8,0,0,1,0-16h40A8,8,0,0,1,200,112Zm-8,24H152a8,8,0,0,0,0,16h40a8,8,0,0,0,0-16Zm40-80V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V56A16,16,0,0,1,40,40H216A16,16,0,0,1,232,56ZM216,200V56H40V200H216Zm-80.26-34a8,8,0,1,1-15.5,4c-2.63-10.26-13.06-18-24.25-18s-21.61,7.74-24.25,18a8,8,0,1,1-15.5-4,39.84,39.84,0,0,1,17.19-23.34,32,32,0,1,1,45.12,0A39.76,39.76,0,0,1,135.75,166ZM96,136a16,16,0,1,0-16-16A16,16,0,0,0,96,136Z"/></symbol>
+    <symbol id="i-eye-slash" viewBox="0 0 256 256"><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></symbol>
+    <symbol id="i-network" viewBox="0 0 256 256"><path d="M232,112H136V88h8a16,16,0,0,0,16-16V40a16,16,0,0,0-16-16H112A16,16,0,0,0,96,40V72a16,16,0,0,0,16,16h8v24H24a8,8,0,0,0,0,16H56v32H48a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16H72V128H184v32h-8a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16h-8V128h32a8,8,0,0,0,0-16ZM112,40h32V72H112ZM80,208H48V176H80Zm128,0H176V176h32Z"/></symbol>
+    <symbol id="i-hard-drives" viewBox="0 0 256 256"><path d="M208,136H48a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V152A16,16,0,0,0,208,136Zm0,64H48V152H208v48Zm0-160H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40Zm0,64H48V56H208v48ZM192,80a12,12,0,1,1-12-12A12,12,0,0,1,192,80Zm0,96a12,12,0,1,1-12-12A12,12,0,0,1,192,176Z"/></symbol>
+    <symbol id="i-shield-check" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"/></symbol>
+    <symbol id="i-package" viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></symbol>
+    <symbol id="i-app-store-logo" viewBox="0 0 256 256"><path d="M64.34,196.07l-9.45,16a8,8,0,1,1-13.78-8.14l9.46-16a8,8,0,1,1,13.77,8.14ZM232,152H184.2l-30.73-52a8,8,0,1,0-13.77,8.14l61.41,103.93a8,8,0,0,0,13.78-8.14L193.66,168H232a8,8,0,0,0,0-16Zm-89.53,0H90.38L158.89,36.07a8,8,0,0,0-13.78-8.14L128,56.89l-17.11-29a8,8,0,1,0-13.78,8.14l21.6,36.55L71.8,152H24a8,8,0,0,0,0,16H142.47a8,8,0,1,0,0-16Z"/></symbol>
+    <symbol id="i-google-play-logo" viewBox="0 0 256 256"><path d="M239.82,114.19,72,18.16a16,16,0,0,0-16.12,0A15.68,15.68,0,0,0,48,31.87V224.13a15.68,15.68,0,0,0,7.92,13.67,16,16,0,0,0,16.12,0l167.78-96a15.75,15.75,0,0,0,0-27.62ZM64,212.67V43.33L148.69,128Zm96-73.36,18.92,18.92-88.5,50.66ZM90.4,47.1l88.53,50.67L160,116.69ZM193.31,150l-22-22,22-22,38.43,22Z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 256 256"><path d="M240,88.23a54.43,54.43,0,0,1-16,37L189.25,160a54.27,54.27,0,0,1-38.63,16h-.05A54.63,54.63,0,0,1,96,119.84a8,8,0,0,1,16,.45A38.62,38.62,0,0,0,150.58,160h0a38.39,38.39,0,0,0,27.31-11.31l34.75-34.75a38.63,38.63,0,0,0-54.63-54.63l-11,11A8,8,0,0,1,135.7,59l11-11A54.65,54.65,0,0,1,224,48,54.86,54.86,0,0,1,240,88.23ZM109,185.66l-11,11A38.41,38.41,0,0,1,70.6,208h0a38.63,38.63,0,0,1-27.29-65.94L78,107.31A38.63,38.63,0,0,1,144,135.71a8,8,0,0,0,16,.45A54.86,54.86,0,0,0,144,96a54.65,54.65,0,0,0-77.27,0L32,130.75A54.62,54.62,0,0,0,70.56,224h0a54.28,54.28,0,0,0,38.64-16l11-11A8,8,0,0,0,109,185.66Z"/></symbol>
+    <symbol id="i-link-break" viewBox="0 0 256 256"><path d="M198.63,57.37a32,32,0,0,0-45.19-.06L141.79,69.52a8,8,0,0,1-11.58-11l11.72-12.29a1.59,1.59,0,0,1,.13-.13,48,48,0,0,1,67.88,67.88,1.59,1.59,0,0,1-.13.13l-12.29,11.72a8,8,0,0,1-11-11.58l12.21-11.65A32,32,0,0,0,198.63,57.37ZM114.21,186.48l-11.65,12.21a32,32,0,0,1-45.25-45.25l12.21-11.65a8,8,0,0,0-11-11.58L46.19,141.93a1.59,1.59,0,0,0-.13.13,48,48,0,0,0,67.88,67.88,1.59,1.59,0,0,0,.13-.13l11.72-12.29a8,8,0,1,0-11.58-11ZM216,152H192a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16ZM40,104H64a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm120,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V192A8,8,0,0,0,160,184ZM96,72a8,8,0,0,0,8-8V40a8,8,0,0,0-16,0V64A8,8,0,0,0,96,72Z"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 256 256"><path d="M224,40V80a8,8,0,0,1-16,0V48H176a8,8,0,0,1,0-16h40A8,8,0,0,1,224,40ZM80,208H48V176a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H80a8,8,0,0,0,0-16Zm136-40a8,8,0,0,0-8,8v32H176a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V176A8,8,0,0,0,216,168ZM40,88a8,8,0,0,0,8-8V48H80a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8V80A8,8,0,0,0,40,88ZM80,72h96a8,8,0,0,1,8,8v96a8,8,0,0,1-8,8H80a8,8,0,0,1-8-8V80A8,8,0,0,1,80,72Zm8,96h80V88H88Z"/></symbol>
+    <symbol id="i-device-mobile" viewBox="0 0 256 256"><path d="M176,16H80A24,24,0,0,0,56,40V216a24,24,0,0,0,24,24h96a24,24,0,0,0,24-24V40A24,24,0,0,0,176,16ZM72,64H184V192H72Zm8-32h96a8,8,0,0,1,8,8v8H72V40A8,8,0,0,1,80,32Zm96,192H80a8,8,0,0,1-8-8v-8H184v8A8,8,0,0,1,176,224Z"/></symbol>
+  </svg>
+
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- ============ NAV ============ -->
-  <header class="nav-wrap">
+  <header class="nav-wrap" data-nav>
+    <div class="nav__progress" aria-hidden="true"><span data-progress></span></div>
     <nav class="nav" aria-label="Main">
+      <span class="nav__pill" aria-hidden="true"></span>
       <a class="nav__brand" href="#top">
-        <img class="nav__logo" src="assets/img/logo.png" alt="" width="26" height="26" />
-        <span>Shroud</span>
+        <span class="nav__mark">
+          <img class="nav__logo" src="assets/img/logo.png" alt="" width="26" height="26" />
+          <svg class="nav__ring" viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="13.6" pathLength="100" /><rect class="nav__ring-fill" x="1" y="1" width="34" height="34" rx="13.6" pathLength="100" /></svg>
+        </span>
+        <span class="nav__word">
+          <span class="nav__name">Shroud</span>
+          <span class="nav__ctx" aria-hidden="true" data-ctx></span>
+        </span>
       </a>
       <div class="nav__menu" id="nav-menu">
-        <a href="#features">Features</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#security">Security</a>
-        <a href="#compare">Compare</a>
-        <a href="#faq">FAQ</a>
+        <div class="nav__links">
+          <span class="nav__indicator" aria-hidden="true"></span>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#security">Security</a>
+          <a href="#compare">Compare</a>
+          <a href="#faq">FAQ</a>
+        </div>
         <a class="nav__cta nav__cta--menu" href="#download">Get Started</a>
       </div>
-      <a class="nav__cta nav__cta--bar" href="#download">Get Started</a>
-      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle menu">
-        <span></span><span></span>
-      </button>
+      <div class="nav__end">
+        <a class="nav__cta nav__cta--bar" href="#download" data-magnetic><span>Get Started</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a>
+        <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+          <svg class="nav__toggle-open" viewBox="0 0 256 256" aria-hidden="true"><use href="#i-list"/></svg>
+          <svg class="nav__toggle-close" viewBox="0 0 256 256" aria-hidden="true"><use href="#i-x"/></svg>
+        </button>
+      </div>
     </nav>
   </header>
 
   <main id="main">
-    <!-- ============ HERO ============ -->
-    <section class="hero" id="top">
-      <div class="hero__bg" aria-hidden="true"></div>
-      <div class="hero__inner">
-        <h1 class="hero__title">
-          <span class="hero__title-metal">Private Bitcoin payments.</span>
-          <span class="hero__title-purple">One address.</span>
-        </h1>
-        <p class="hero__sub">Receive to a single, reusable address that produces a unique, unlinkable output on-chain for every payment powered by silent payments, on by default.</p>
-        <div class="hero__actions">
-          <a class="btn btn--primary" href="#download">
-            <svg width="18" height="18" viewBox="0 0 17.6 17.6" fill="none" aria-hidden="true"><path d="M15.39 10.99v2.93a1.47 1.47 0 0 1-1.47 1.47H3.66a1.47 1.47 0 0 1-1.46-1.47v-2.93" stroke="currentColor" stroke-width="1.47" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.13 7.33l3.66 3.66 3.67-3.66" stroke="currentColor" stroke-width="1.47" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.79 10.99V2.2" stroke="currentColor" stroke-width="1.47" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Download Shroud
-          </a>
-          <a class="btn btn--ghost" href="#how-it-works">How it works</a>
+    <!-- ============ STORY: hero + how silent payments work ============ -->
+    <section class="story" id="top" data-story>
+      <div class="story__stage" data-stage>
+        <canvas class="veil" data-veil aria-hidden="true"></canvas>
+        <div class="story__gl" data-gl aria-hidden="true"></div>
+        <div class="story__frame story__frame--chapter" data-frame="chapter" aria-hidden="true"></div>
+
+        <div class="story__labels" data-labels aria-hidden="true"></div>
+
+        <div class="hero" data-hero>
+          <div class="hero__copy">
+            <h1 class="hero__title">
+              <span class="line" data-hero-line><span class="line__inner metal shimmer">Private Bitcoin payments.</span></span>
+              <span class="line" data-hero-line><span class="line__inner tint shimmer shimmer--tint">One address.</span></span>
+            </h1>
+            <p class="hero__sub" data-hero-item>One reusable address. A unique, unlinkable output <span class="nowrap">on-chain</span> for every payment, powered by silent payments.</p>
+            <div class="hero__actions" data-hero-item>
+              <a class="btn btn--primary" href="#download" data-magnetic>
+                <svg class="icon" aria-hidden="true"><use href="#i-download-simple"/></svg>
+                <span>Download Shroud</span>
+              </a>
+              <a class="btn btn--ghost" href="#how-it-works" data-magnetic>
+                <span>How it works</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow-down"/></svg>
+              </a>
+            </div>
+            <div class="standards" data-hero-item>
+              <p class="standards__label">Built on open standards</p>
+              <div class="marquee standards__marquee" data-marquee>
+                <div class="marquee__track">
+                  <ul class="standards__list marquee__group">
+                    <li>Bitcoin Core</li>
+                    <li>BIP-352</li>
+                    <li>Taproot</li>
+                    <li>Tor</li>
+                    <li>Electrum</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figure class="poster" data-poster data-frame="hero" aria-label="Shroud wallet home screen showing a 0.00004511 BTC balance, Request and Pay buttons, and a list of unlinkable silent-payment transactions">
+            <div class="poster__device">
+              <img class="poster__screen" src="assets/img/phone-screen.png" alt="" width="538" height="1148" />
+              <img class="poster__frame" src="assets/img/iphone-frame.png" alt="" width="640" height="1270" />
+            </div>
+          </figure>
         </div>
 
-        <div class="hero__stage">
-          <div class="phone" aria-label="Shroud wallet app on a phone">
-            <div class="phone__screen">
-              <img src="assets/img/phone-screen.png" alt="Shroud wallet home screen showing a 0.00004511 BTC balance, Request and Pay buttons, and a list of unlinkable silent-payment transactions" width="269" height="574" />
+        <div class="chapters" data-chapters>
+          <article class="chapter" id="silent-payments" data-chapter>
+            <div class="chapter__lead" data-avoid>
+              <p class="eyebrow"><span class="eyebrow__index">01</span>Address reuse</p>
+              <h2 class="chapter__title" data-lines>Reusing an address destroys your privacy.</h2>
             </div>
-            <img class="phone__frame" src="assets/img/iphone-frame.png" alt="" width="292" height="580" aria-hidden="true" />
-          </div>
-
-          <div class="hero-card hero-card--1">
-            <span class="hero-card__icon hero-card__icon--green" aria-hidden="true">
-              <svg width="19" height="19" viewBox="0 0 18.9 18.9" fill="none"><path d="M14.94 9.43l-5.5 5.5-5.5-5.5" stroke="#4ADE80" stroke-width="1.57" stroke-linecap="round"/><path d="M9.43 3.93v11" stroke="#4ADE80" stroke-width="1.57" stroke-linecap="round"/></svg>
-            </span>
-            <span class="hero-card__body">
-              <strong>Payment received</strong>
-              <small>fresh output · no link on-chain</small>
-            </span>
-          </div>
-
-          <div class="hero-card hero-card--2">
-            <span class="hero-card__icon hero-card__icon--purple" aria-hidden="true">
-              <svg width="19" height="19" viewBox="0 0 19 19" fill="none"><path d="M15.87 16.66v-1.59a3.17 3.17 0 0 0-3.17-3.17H6.35a3.17 3.17 0 0 0-3.18 3.17v1.59" stroke="#C4B5FD" stroke-width="1.59" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.52 8.73a3.17 3.17 0 1 0 0-6.35 3.17 3.17 0 0 0 0 6.35z" stroke="#C4B5FD" stroke-width="1.59" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="hero-card__body">
-              <strong>Contact paid</strong>
-              <small>saved once · sp1qq…k2f4</small>
-            </span>
-          </div>
-
-          <div class="hero-card hero-card--3">
-            <span class="hero-card__icon hero-card__icon--blue" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 17.2 17.2" fill="none"><path d="M7.87 12.87a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" stroke="#60A5FA" stroke-width="1.43" stroke-linecap="round"/><path d="M15.02 15.02l-3.22-3.22" stroke="#60A5FA" stroke-width="1.43" stroke-linecap="round"/></svg>
-            </span>
-            <span class="hero-card__body">
-              <strong>Scanning on-device</strong>
-              <small>your server learns nothing</small>
-            </span>
-          </div>
-
-          <div class="hero-card hero-card--4">
-            <span class="hero-card__icon hero-card__icon--amber" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v4" stroke="#FBBF24" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6c0 2.67-4 2.67-4 6" stroke="#FBBF24" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6c0 2.67 4 2.67 4 6" stroke="#FBBF24" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="hero-card__body">
-              <strong>Payment split</strong>
-              <small>change hidden from analysis</small>
-            </span>
-          </div>
-        </div>
-
-        <div class="standards" aria-label="Built on open standards">
-          <p class="standards__label">Built on open standards</p>
-          <div class="standards__viewport">
-            <div class="standards__track">
-              <span class="standards__item standards__item--georgia">BITCOIN CORE</span>
-              <span class="standards__item standards__item--courier">BIP-352</span>
-              <span class="standards__item standards__item--trebuchet">Taproot</span>
-              <span class="standards__item standards__item--arial">TOR</span>
-              <span class="standards__item standards__item--palatino">Electrum</span>
-              <span class="standards__item standards__item--georgia" aria-hidden="true">BITCOIN CORE</span>
-              <span class="standards__item standards__item--courier" aria-hidden="true">BIP-352</span>
-              <span class="standards__item standards__item--trebuchet" aria-hidden="true">Taproot</span>
-              <span class="standards__item standards__item--arial" aria-hidden="true">TOR</span>
-              <span class="standards__item standards__item--palatino" aria-hidden="true">Electrum</span>
+            <div class="chapter__aside" data-avoid>
+              <p class="chapter__body">But handing out a fresh one for every payment breaks down in practice.</p>
+              <p class="chip chip--muted"><svg class="icon" aria-hidden="true"><use href="#i-link"/></svg>Every payment traces back to the same address — all linkable.</p>
             </div>
+            <figure class="chapter__figure" aria-hidden="true">
+              <svg viewBox="0 0 360 200" class="diagram">
+                <g class="diagram__muted"><path d="M74 40C150 40 160 100 214 100M74 100h140M74 160c76 0 86-60 140-60" fill="none" stroke-width="1.2"/></g>
+                <g class="diagram__coin"><circle cx="56" cy="40" r="17"/><circle cx="56" cy="100" r="17"/><circle cx="56" cy="160" r="17"/></g>
+                <rect class="diagram__slab" x="214" y="74" width="128" height="52" rx="12"/>
+                <text class="diagram__label" x="278" y="97" text-anchor="middle">bc1q…9f2c</text>
+                <text class="diagram__small" x="278" y="114" text-anchor="middle">one shared address</text>
+              </svg>
+            </figure>
+          </article>
+
+          <article class="chapter" data-chapter>
+            <div class="chapter__lead" data-avoid>
+              <p class="eyebrow"><span class="eyebrow__index">02</span>Silent payment</p>
+              <h2 class="chapter__title" data-lines>The address problem, <span class="tint">solved.</span></h2>
+            </div>
+            <div class="chapter__aside" data-avoid>
+              <p class="chapter__body">Silent Payment addresses are reusable. Share one address for multiple payments without compromising privacy.</p>
+              <p class="chip"><span class="chip__dot" aria-hidden="true"></span><span class="mono">sp1q…one address</span></p>
+            </div>
+            <figure class="chapter__figure" aria-hidden="true">
+              <svg viewBox="0 0 360 200" class="diagram">
+                <use href="#m-logo" x="130" y="30" width="100" height="100" class="diagram__logo"/>
+                <text class="diagram__label" x="180" y="164" text-anchor="middle">sp1q…one address</text>
+                <text class="diagram__small" x="180" y="182" text-anchor="middle">your one reusable address</text>
+              </svg>
+            </figure>
+          </article>
+
+          <article class="chapter" data-chapter>
+            <div class="chapter__lead" data-avoid>
+              <p class="eyebrow"><span class="eyebrow__index">03</span>Unique outputs</p>
+              <h2 class="chapter__title" data-lines>Each payment lands somewhere new.</h2>
+            </div>
+            <div class="chapter__aside" data-avoid>
+              <p class="chapter__body">Every payment still lands on a different on-chain address and none of them are linkable.</p>
+              <p class="chip"><span class="chip__dot" aria-hidden="true"></span>Fresh output · no link on-chain</p>
+            </div>
+            <figure class="chapter__figure" aria-hidden="true">
+              <svg viewBox="0 0 360 190" class="diagram"><rect class="diagram__tile" x="22" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="278" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="86" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="214" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="144" width="22" height="22" rx="8.8"/></svg>
+            </figure>
+          </article>
+
+          <article class="chapter" data-chapter>
+            <div class="chapter__lead" data-avoid>
+              <p class="eyebrow"><span class="eyebrow__index">04</span>On-device scanning</p>
+              <h2 class="chapter__title" data-lines>Funds appear. <span class="tint">Links don't.</span></h2>
+            </div>
+            <div class="chapter__aside" data-avoid>
+              <p class="chapter__body">Your wallet detects incoming payments by scanning the chain locally. No server ever learns which transactions are yours.</p>
+              <p class="chip chip--ok"><svg class="icon" aria-hidden="true"><use href="#i-link-break"/></svg>0 links found</p>
+            </div>
+            <figure class="chapter__figure" aria-hidden="true">
+              <svg viewBox="0 0 360 190" class="diagram"><defs><linearGradient id="scan-grad" x1="0" x2="1"><stop offset="0" stop-color="#8b6cff" stop-opacity="0"/><stop offset=".5" stop-color="#c4b5fd" stop-opacity=".55"/><stop offset="1" stop-color="#8b6cff" stop-opacity="0"/></linearGradient></defs><rect class="diagram__tile" x="22" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="278" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="16" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="86" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="48" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="80" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile diagram__tile--own" x="214" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="112" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="22" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="54" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="86" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="118" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="150" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="182" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="214" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="246" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="278" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__tile" x="310" y="144" width="22" height="22" rx="8.8"/><rect class="diagram__scan" x="200" y="6" width="40" height="168"/></svg>
+            </figure>
+          </article>
+
+          <div class="chapters__progress" aria-hidden="true">
+            <span class="chapters__count"><span data-chapter-index>01</span> / 04</span>
+            <span class="chapters__track"><span class="chapters__fill" data-chapter-fill></span></span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ THE ADDRESS PROBLEM ============ -->
-    <section class="section demo" id="silent-payments">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Silent payments</p>
-        <h2 class="h2">The address problem,&nbsp;solved</h2>
-        <p class="section__sub section__sub--wide">Reusing an address destroys your privacy, but handing out a fresh one for every payment breaks down in practice. Fire a few payments and watch what chain analysis sees — brightness is exposure.</p>
-      </div>
-
-      <div class="diagram reveal" role="img" aria-label="Diagram comparing address reuse, where every payment traces back to one shared address, with silent payments, where each payment lands at a new unlinkable address.">
-        <div class="diagram__panel">
-          <p class="diagram__tag diagram__tag--grey">ADDRESS REUSE</p>
-          <div class="diagram__flow">
-            <div class="diagram__col">
-              <span class="d-box d-box--sm">payment 1</span>
-              <span class="d-box d-box--sm">payment 2</span>
-              <span class="d-box d-box--sm">payment 3</span>
-            </div>
-            <svg class="diagram__lines" viewBox="0 0 180 110" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M0 13 C90 13 110 55 180 55" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 H180" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
-              <path d="M0 97 C90 97 110 55 180 55" stroke="#3A3A48" stroke-width="1.4" fill="none"/>
-            </svg>
-            <div class="diagram__col diagram__col--center">
-              <span class="d-box d-box--addr">
-                <strong>bc1q…9f2c</strong>
-                <small>one shared address</small>
-              </span>
-            </div>
-          </div>
-          <p class="diagram__caption diagram__caption--grey">Every payment traces back to the same address — all linkable.</p>
-        </div>
-
-        <div class="diagram__divider" aria-hidden="true"></div>
-
-        <div class="diagram__panel">
-          <p class="diagram__tag diagram__tag--purple">SILENT PAYMENT</p>
-          <div class="diagram__flow">
-            <div class="diagram__col diagram__col--center">
-              <span class="d-box d-box--sp">
-                <i class="d-box__dot" aria-hidden="true"></i>
-                <span><strong>sp1q…one address</strong>
-                <small>your one reusable address</small></span>
-              </span>
-            </div>
-            <svg class="diagram__lines" viewBox="0 0 180 110" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="dgrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#8A6CF0"/>
-                  <stop offset="1" stop-color="#8A6CF0" stop-opacity=".25"/>
-                </linearGradient>
-              </defs>
-              <path d="M0 55 C90 55 110 13 180 13" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 H180" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
-              <path d="M0 55 C90 55 110 97 180 97" stroke="url(#dgrad)" stroke-width="1.4" fill="none"/>
-            </svg>
-            <div class="diagram__col">
-              <span class="d-box d-box--sm">bc1p…a9f3</span>
-              <span class="d-box d-box--sm">bc1p…2k7d</span>
-              <span class="d-box d-box--sm">bc1p…x0q1</span>
-            </div>
-          </div>
-          <p class="diagram__caption diagram__caption--purple">Each payment lands somewhere new — nothing links them.</p>
         </div>
       </div>
     </section>
 
-    <!-- ============ FEATURES BENTO ============ -->
-    <section class="section features" id="features">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Features</p>
-        <h2 class="h2">Manage your privacy</h2>
-        <p class="section__sub">Three things made possible by putting silent payments at the core of the wallet — not bolted on.</p>
-      </div>
+    <!-- ============ FEATURES ============ -->
+    <section class="section features" id="features" data-nav-label="Features">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Features</p>
+          <h2 class="h2" data-lines>Manage your privacy</h2>
+          <p class="section__sub">Three things made possible by putting silent payments at the core of the wallet — not bolted on.</p>
+        </header>
 
-      <div class="bento">
-        <article class="bento__card bento__card--hl reveal">
-          <h3 class="bento__title">
-            <span class="bento__icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.42 10.5a4.08 4.08 0 1 0 0-8.17 4.08 4.08 0 0 0 0 8.17z" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.05" stroke-linecap="round"/><path d="M12.25 12.25L9.63 9.63" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.05" stroke-linecap="round"/></svg>
-            </span>
-            Fast on-device scanning
-          </h3>
-          <p class="bento__body">Your wallet detects incoming payments by scanning the chain locally for the best balance of speed and battery. No server ever learns which transactions are yours.</p>
-          <div class="bento__visual bento__visual--scan">
-            <div class="scanfeed" aria-hidden="true">
-              <div class="scanfeed__list">
-                <div class="scanrow scanrow--skeleton"><span></span><span></span></div>
-                <div class="scanrow scanrow--skeleton"><span></span><span></span></div>
-                <div class="scanrow scanrow--found"><em>block 903,147</em><em>✓ payment found</em></div>
-                <div class="scanrow"><em>block 903,148</em><em>scanned · 0 hits</em></div>
-                <div class="scanrow"><em>block 903,149</em><em>scanned · 0 hits</em></div>
-                <div class="scanrow scanrow--active"><em>block 903,150</em><em>✓ payment found</em></div>
-                <div class="scanrow"><em>block 903,151</em><em>scanned · 0 hits</em></div>
-                <div class="scanrow scanrow--skeleton"><span></span><span></span></div>
-                <div class="scanrow scanrow--skeleton"><span></span><span></span></div>
-                <div class="scanrow scanrow--found"><span></span><span></span></div>
+        <div class="bento" data-stagger>
+          <article class="bento__card bento__card--hl" data-glow>
+            <h3 class="bento__title"><span class="bento__icon" aria-hidden="true"><svg class="icon"><use href="#i-magnifying-glass"/></svg></span>Fast on-device scanning</h3>
+            <p class="bento__body">Your wallet detects incoming payments by scanning the chain locally for the best balance of speed and battery. No server ever learns which transactions are yours.</p>
+            <div class="bento__visual bento__visual--scan" data-anim="scan" aria-hidden="true">
+              <div class="scanfeed">
+                <span class="scanfeed__sweep"></span>
+                <div class="scanrow is-done" data-row><em class="scanrow__blk">block <b data-blk>903,146</b></em><span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+                <div class="scanrow is-hit" data-row data-hit><em class="scanrow__blk">block <b data-blk>903,147</b></em><span class="pucks"><i></i><i></i><i></i><i class="own"></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+                <div class="scanrow is-done" data-row><em class="scanrow__blk">block <b data-blk>903,148</b></em><span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+                <div class="scanrow is-done" data-row><em class="scanrow__blk">block <b data-blk>903,149</b></em><span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+                <div class="scanrow is-hit" data-row data-hit><em class="scanrow__blk">block <b data-blk>903,150</b></em><span class="pucks"><i></i><i class="own"></i><i></i><i></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+                <div class="scanrow is-done" data-row><em class="scanrow__blk">block <b data-blk>903,151</b></em><span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="scanrow__state"><em class="s-wait"><i></i><i></i></em><em class="s-done">scanned · 0 hits</em><em class="s-hit"><svg class="icon"><use href="#i-check"/></svg>payment found</em></span></div>
+              </div>
+              <span class="ondevice-badge"><i></i>ON-DEVICE</span>
+            </div>
+          </article>
+
+          <article class="bento__card" data-glow>
+            <h3 class="bento__title"><span class="bento__icon" aria-hidden="true"><svg class="icon"><use href="#i-address-book"/></svg></span>Silent payment contacts</h3>
+            <p class="bento__body">Save someone's SP address once, pay them forever. Every payment still lands on a different on-chain address and none of them are linkable. Only possible with silent payments.</p>
+            <div class="bento__visual bento__visual--contacts" data-anim="contacts" aria-hidden="true">
+              <div class="contacts">
+                <div class="contact contact--active" data-payee>
+                  <span class="contact__avatar">DW</span>
+                  <span class="contact__meta"><strong>David W.</strong><small>sp1qq…k2f4 · saved once</small></span>
+                  <span class="contact__pill contact__pill--bright" data-paid><svg class="icon"><use href="#i-check"/></svg>paid just now</span>
+                </div>
+                <div class="contact">
+                  <span class="contact__avatar">MA</span>
+                  <span class="contact__meta"><strong>Maria A.</strong><small>sp1qq…9dh7 · saved once</small></span>
+                  <span class="contact__pill">4 payments</span>
+                </div>
+                <div class="contact">
+                  <span class="contact__avatar">RN</span>
+                  <span class="contact__meta"><strong>Ranch Node Co-op</strong><small>sp1qq…m3x1 · saved once</small></span>
+                  <span class="contact__pill">monthly</span>
+                </div>
+              </div>
+              <div class="fchain" data-chain>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <span class="fchain__tag" data-tag>bc1p…48cd</span>
+              </div>
+              <span class="fly" data-fly></span>
+            </div>
+          </article>
+
+          <article class="bento__card bento__card--wide" data-glow>
+            <h3 class="bento__title"><span class="bento__icon bento__icon--lg" aria-hidden="true"><svg class="icon"><use href="#i-arrows-split"/></svg></span>Payment splitting</h3>
+            <p class="bento__body bento__body--narrow">Break one payment into multiple outputs inside a single transaction, so change and payment look alike. Harder for chain analysis, not impossible, and we say so.</p>
+            <div class="bento__visual bento__visual--split" data-anim="split" aria-hidden="true">
+              <div class="split" data-phase="4">
+                <div class="split__bar"><span class="split__seg split__seg--a"></span><span class="split__cut"></span><span class="split__seg split__seg--b"></span></div>
+                <div class="split__amounts">
+                  <span class="split__out split__out--a"><i class="puck"></i>0.00029434</span>
+                  <span class="split__out split__out--b">0.00020566<i class="puck"></i></span>
+                </div>
+                <div class="split__sending">SENDING 0.00050000 BTC</div>
               </div>
             </div>
-            <span class="ondevice-badge"><i aria-hidden="true"></i>ON-DEVICE</span>
-          </div>
-        </article>
-
-        <article class="bento__card reveal">
-          <h3 class="bento__title">
-            <span class="bento__icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.67 12.25v-1.17a2.33 2.33 0 0 0-2.34-2.33H4.67a2.33 2.33 0 0 0-2.34 2.33v1.17" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 6.42a2.33 2.33 0 1 0 0-4.67 2.33 2.33 0 0 0 0 4.67z" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            Silent payment contacts
-          </h3>
-          <p class="bento__body">Save someone's SP address once, pay them forever. Every payment still lands on a different on-chain address and none of them are linkable. Only possible with silent payments.</p>
-          <div class="bento__visual bento__visual--contacts">
-            <div class="contacts" aria-hidden="true">
-              <div class="contact contact--active">
-                <span class="contact__avatar">DW</span>
-                <span class="contact__meta"><strong>David W.</strong><small>sp1qq…k2f4 · saved once</small></span>
-                <span class="contact__pill contact__pill--bright">✓ paid just now</span>
-              </div>
-              <div class="contact">
-                <span class="contact__avatar">MA</span>
-                <span class="contact__meta"><strong>Maria A.</strong><small>sp1qq…9dh7 · saved once</small></span>
-                <span class="contact__pill">4 payments</span>
-              </div>
-              <div class="contact">
-                <span class="contact__avatar">RN</span>
-                <span class="contact__meta"><strong>Ranch Node Co-op</strong><small>sp1qq…m3x1 · saved once</small></span>
-                <span class="contact__pill">monthly</span>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <article class="bento__card bento__card--wide reveal">
-          <h3 class="bento__title">
-            <span class="bento__icon bento__icon--lg" aria-hidden="true">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1.88v3.75" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.13" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 5.63c0 2.5-3.75 2.5-3.75 5.62" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.13" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 5.63c0 2.5 3.75 2.5 3.75 5.62" stroke="#F5F5F7" stroke-opacity=".55" stroke-width="1.13" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            Payment splitting
-          </h3>
-          <p class="bento__body bento__body--narrow">Break one payment into multiple outputs inside a single transaction, so change and payment look alike. Harder for chain analysis ,not impossible, and we say so.</p>
-          <div class="bento__visual bento__visual--split">
-            <div class="split" aria-hidden="true">
-              <div class="split__bar">
-                <span class="split__seg split__seg--a"></span>
-                <span class="split__seg split__seg--b"></span>
-              </div>
-              <div class="split__amounts">
-                <span>0.00029434</span>
-                <span>0.00020566</span>
-              </div>
-              <div class="split__sending">SENDING 0.00050000 BTC</div>
-            </div>
-          </div>
-        </article>
+          </article>
+        </div>
       </div>
     </section>
 
     <!-- ============ HOW IT WORKS ============ -->
-    <section class="section how" id="how-it-works">
-      <div class="section__head section__head--pad reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Under the hood</p>
-        <h2 class="h2 h2--inter">How a silent payment finds you</h2>
-        <p class="section__sub">Four steps, zero interaction — the protocol behind the calm.</p>
-      </div>
+    <section class="section how" id="how-it-works" data-nav-label="How it works">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Under the hood</p>
+          <h2 class="h2" data-lines>How a silent payment finds you</h2>
+          <p class="section__sub">Four steps, zero interaction — the protocol behind the calm.</p>
+        </header>
 
-      <div class="step reveal">
-        <div class="step__visual">
-          <div class="minicard" aria-hidden="true">
-            <span class="minicard__dot"></span>
-            <span class="minicard__box minicard__box--bright">sp1qq2e3…x7v4</span>
-            <span class="minicard__caption">scan key + spend key · publish anywhere</span>
-          </div>
-        </div>
-        <div class="step__text">
-          <p class="step__num" aria-hidden="true">01</p>
-          <h3 class="step__title">Publish one address, once</h3>
-          <p class="step__body">Your <code>sp1…</code> address encodes a scan key and a spend key. Put it in a bio or on an invoice — it reveals nothing about your balance or history.</p>
-        </div>
-      </div>
+        <ol class="steps" data-steps>
+          <li class="steps__rail" aria-hidden="true"><i data-rail></i></li>
 
-      <div class="step step--flip reveal">
-        <div class="step__text">
-          <p class="step__num" aria-hidden="true">02</p>
-          <h3 class="step__title">The sender derives a fresh output</h3>
-          <p class="step__body">Using ECDH between their input keys and your scan key, their wallet computes a one-time taproot output only you can recognize — per <code>BIP-352</code>. No interaction with you, ever.</p>
-        </div>
-        <div class="step__visual">
-          <div class="minicard minicard--row" aria-hidden="true">
-            <div class="minicard__flowrow">
-              <span class="minicard__box minicard__box--dim">sender inputs</span>
-              <span class="minicard__dash"><em>ECDH</em></span>
-              <span class="minicard__box minicard__box--bright">one-time output</span>
+          <li class="step" data-step>
+            <span class="step__node" aria-hidden="true"><span>01</span></span>
+            <div class="step__text">
+              <p class="step__num" aria-hidden="true">01</p>
+              <h3 class="step__title">Publish one address, once</h3>
+              <p class="step__body">Your <code>sp1…</code> address encodes a scan key and a spend key. Put it in a bio or on an invoice — it reveals nothing about your balance or history.</p>
             </div>
-            <span class="minicard__caption">no interaction with you — ever</span>
-          </div>
-        </div>
-      </div>
+            <figure class="step__visual" aria-hidden="true">
+              <div class="ill ill--publish" data-glow data-anim="once">
+                <div class="pub__keys">
+                  <span class="keychip keychip--scan"><svg class="icon"><use href="#i-key"/></svg>scan key</span>
+                  <span class="pub__plus"><svg class="icon"><use href="#i-plus"/></svg></span>
+                  <span class="keychip keychip--spend"><svg class="icon"><use href="#i-key"/></svg>spend key</span>
+                </div>
+                <div class="pub__card">
+                  <svg class="pub__mark"><use href="#m-logo"/></svg>
+                  <span class="pub__addr">sp1qq2e3…x7v4</span>
+                </div>
+                <svg class="pub__wires" viewBox="0 0 240 44" preserveAspectRatio="none">
+                  <path pathLength="1" d="M120 0 C 120 24, 60 20, 60 44"/>
+                  <path pathLength="1" d="M120 0 C 120 24, 180 20, 180 44"/>
+                </svg>
+                <div class="pub__surfaces">
+                  <div class="surf"><span class="surf__tag">bio</span><span class="surf__row"><i class="surf__avatar"></i><i class="surf__line"></i></span><span class="surf__chip">sp1qq2e3…x7v4</span></div>
+                  <div class="surf"><span class="surf__tag">invoice</span><i class="surf__line surf__line--short"></i><span class="surf__chip">sp1qq2e3…x7v4</span></div>
+                </div>
+                <p class="ill__cap">scan key + spend key · publish anywhere</p>
+              </div>
+            </figure>
+          </li>
 
-      <div class="step reveal">
-        <div class="step__visual">
-          <div class="minicard" aria-hidden="true">
-            <div class="minicard__phonewrap">
-              <span class="minicard__sidelabel minicard__sidelabel--left">blocks in →</span>
-              <span class="minicard__dashline minicard__dashline--left"></span>
-              <span class="minicard__phone"><span class="minicard__scanline"></span></span>
-              <span class="minicard__dashline minicard__dashline--right"></span>
-              <span class="minicard__sidelabel minicard__sidelabel--right"><i class="minicard__x">✕</i> nothing out</span>
+          <li class="step step--flip" data-step>
+            <span class="step__node" aria-hidden="true"><span>02</span></span>
+            <div class="step__text">
+              <p class="step__num" aria-hidden="true">02</p>
+              <h3 class="step__title">The sender derives a fresh output</h3>
+              <p class="step__body">Using ECDH between their input keys and your scan key, their wallet computes a one-time taproot output only you can recognize — per <code>BIP-352</code>. No interaction with you, ever.</p>
             </div>
-            <span class="minicard__caption">tweak data checked on your device</span>
-          </div>
-        </div>
-        <div class="step__text">
-          <p class="step__num" aria-hidden="true">03</p>
-          <h3 class="step__title">Your device scans locally</h3>
-          <p class="step__body">Shroud pulls compact tweak data for new blocks and checks candidates on your device. The server you connect to serves blocks to everyone; it learns nothing about which outputs are yours.</p>
-        </div>
-      </div>
+            <figure class="step__visual" aria-hidden="true">
+              <div class="ill ill--ecdh" data-glow data-anim="once">
+                <div class="ecdh__row">
+                  <div class="ecdh__card">
+                    <span class="ecdh__label">sender inputs</span>
+                    <span class="ecdh__pucks"><i class="puck"></i><i class="puck"></i></span>
+                  </div>
+                  <span class="ecdh__wire"><i></i></span>
+                  <div class="ecdh__node"><span class="ecdh__ring"></span><em>ECDH</em></div>
+                  <span class="ecdh__wire ecdh__wire--in"><i></i></span>
+                  <div class="ecdh__card ecdh__card--scan">
+                    <span class="keychip keychip--scan"><svg class="icon"><use href="#i-key"/></svg>scan key</span>
+                  </div>
+                </div>
+                <span class="ecdh__drop"><i></i></span>
+                <div class="ecdh__out">
+                  <i class="puck puck--lit"></i>
+                  <span class="ecdh__addr">bc1p…48cd</span>
+                  <span class="ecdh__cap">one-time output</span>
+                </div>
+                <p class="ill__cap">no interaction with you — ever</p>
+              </div>
+            </figure>
+          </li>
 
-      <div class="step step--flip reveal">
-        <div class="step__text">
-          <p class="step__num" aria-hidden="true">04</p>
-          <h3 class="step__title">Funds appear. Links don't.</h3>
-          <p class="step__body">On-chain, each payment is an ordinary taproot output at a never-before-seen address. Observers can't connect them to each other — or to the address you published.</p>
-        </div>
-        <div class="step__visual">
-          <div class="minicard" aria-hidden="true">
-            <span class="minicard__found">✓ 0 links found</span>
-            <div class="minicard__flowrow minicard__flowrow--tight">
-              <span class="minicard__box minicard__box--dashed">bc1p…48cd</span>
-              <span class="minicard__box minicard__box--dashed">bc1p…5bf4</span>
-              <span class="minicard__box minicard__box--dashed">bc1p…dc43</span>
+          <li class="step" data-step>
+            <span class="step__node" aria-hidden="true"><span>03</span></span>
+            <div class="step__text">
+              <p class="step__num" aria-hidden="true">03</p>
+              <h3 class="step__title">Your device scans locally</h3>
+              <p class="step__body">Shroud pulls compact tweak data for new blocks and checks candidates on your device. The server you connect to serves blocks to everyone; it learns nothing about which outputs are yours.</p>
             </div>
-            <span class="minicard__caption">ordinary taproot outputs · nothing connects them</span>
-          </div>
-        </div>
+            <figure class="step__visual" aria-hidden="true">
+              <div class="ill ill--scan" data-glow data-anim="loop">
+                <span class="lscan__side">blocks in <svg class="icon"><use href="#i-arrow-right"/></svg></span>
+                <span class="lscan__lane"><i></i><i></i><i></i></span>
+                <div class="lscan__device">
+                  <span class="lscan__notch"></span>
+                  <span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                  <span class="pucks"><i></i><i class="own"></i><i></i><i></i><i></i><i></i></span>
+                  <span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                  <span class="pucks"><i></i><i></i><i></i><i></i><i class="own"></i><i></i></span>
+                  <span class="pucks"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                  <span class="lscan__line"></span>
+                </div>
+                <span class="lscan__lane lscan__lane--out"></span>
+                <span class="lscan__side lscan__side--off"><svg class="icon"><use href="#i-x"/></svg>nothing out</span>
+                <p class="ill__cap">tweak data checked on your device</p>
+              </div>
+            </figure>
+          </li>
+
+          <li class="step step--flip" data-step>
+            <span class="step__node" aria-hidden="true"><span>04</span></span>
+            <div class="step__text">
+              <p class="step__num" aria-hidden="true">04</p>
+              <h3 class="step__title">Funds appear. Links don't.</h3>
+              <p class="step__body">On-chain, each payment is an ordinary taproot output at a never-before-seen address. Observers can't connect them to each other — or to the address you published.</p>
+            </div>
+            <figure class="step__visual" aria-hidden="true">
+              <div class="ill ill--links" data-glow data-anim="once">
+                <div class="nolink__pub"><svg class="icon"><use href="#m-logo"/></svg><span>sp1qq2e3…x7v4</span></div>
+                <svg class="nolink__wires" viewBox="0 0 300 90" preserveAspectRatio="none">
+                  <path pathLength="1" d="M150 0 C 150 46, 50 40, 50 90"/>
+                  <path pathLength="1" d="M150 0 L 150 90"/>
+                  <path pathLength="1" d="M150 0 C 150 46, 250 40, 250 90"/>
+                </svg>
+                <span class="nolink__break" style="--x:27%"><svg class="icon"><use href="#i-link-break"/></svg></span>
+                <span class="nolink__break" style="--x:50%"><svg class="icon"><use href="#i-link-break"/></svg></span>
+                <span class="nolink__break" style="--x:73%"><svg class="icon"><use href="#i-link-break"/></svg></span>
+                <div class="nolink__outs">
+                  <span class="nolink__out"><i class="puck"></i>bc1p…48cd</span>
+                  <span class="nolink__out"><i class="puck"></i>bc1p…5bf4</span>
+                  <span class="nolink__out"><i class="puck"></i>bc1p…dc43</span>
+                </div>
+                <span class="nolink__pill"><svg class="icon"><use href="#i-check"/></svg>0 links found</span>
+                <p class="ill__cap">ordinary taproot outputs · nothing connects them</p>
+              </div>
+            </figure>
+          </li>
+        </ol>
       </div>
     </section>
 
     <!-- ============ PRIVACY & TRUST ============ -->
-    <section class="section trust" id="privacy">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Privacy &amp; trust</p>
-        <h2 class="h2 h2--inter">What we don't do matters more</h2>
-        <p class="section__sub">Self-custody, no accounts, and no analytics or tracking. Where a protection has limits, we say so — credibility is the product.</p>
-      </div>
+    <section class="section trust" id="privacy" data-nav-label="Privacy &amp; trust">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Privacy &amp; trust</p>
+          <h2 class="h2" data-lines>What we don't do matters more</h2>
+          <p class="section__sub">Self-custody, no accounts, and no analytics or tracking. Where a protection has limits, we say so — credibility is the product.</p>
+        </header>
 
-      <div class="trust__grid">
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11.38 1.08l-1.09 1.09m0 0l1.63 1.62-1.9 1.9-1.62-1.63m1.89-1.89L8.4 4.06M6.17 6.29a2.97 2.97 0 1 1-4.21 4.21 2.97 2.97 0 0 1 4.2-4.21zm0 0L8.4 4.06" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Non-custodial, always</h3>
-          <p>Keys are generated and stored on your device and never leave it. Your coins are yours — Shroud can't freeze, seize, or lose them.</p>
-        </article>
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9.72 9.72A5.42 5.42 0 0 1 6.5 10.83C2.71 10.83.54 6.5.54 6.5A9.92 9.92 0 0 1 3.28 3.28M5.36 2.3c.37-.09.76-.13 1.14-.13 3.79 0 5.96 4.33 5.96 4.33a9.95 9.95 0 0 1-1.17 1.73M7.65 7.65a1.63 1.63 0 1 1-2.3-2.3" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/><path d="M.54.54l11.92 11.92" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/></svg></span>No KYC, no accounts</h3>
-          <p>Download and use it. No sign-up, no email, no name. We hold almost nothing about you, so there's little to hand over.</p>
-        </article>
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9.95 3.6a4.88 4.88 0 1 1-6.9 0" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 1.08V6.5" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/></svg></span>No analytics or tracking</h3>
-          <p>No analytics, ads or tracking pixels. The app only talks to the servers it needs, and crash reports are optional — switch them off in Settings.</p>
-        </article>
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.42" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975"/><circle cx="6.5" cy="6.5" r="3.25" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975"/><circle cx="6.5" cy="6.5" r="1.08" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975"/></svg></span>Tor supported</h3>
-          <p>Route your indexer and Electrum connections over Tor to keep your IP address out of the picture at the network layer.</p>
-        </article>
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1.08" y="1.08" width="10.83" height="4.33" rx="1.08" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975"/><rect x="1.08" y="7.58" width="10.83" height="4.33" rx="1.08" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975"/><path d="M3.25 3.25h.005M3.25 9.75h.005" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round"/></svg></span>Your node, your rules</h3>
-          <p>Connect your own node, or pick the Electrum server you trust in settings.</p>
-        </article>
-        <article class="trust__item reveal">
-          <h3><span class="trust__icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4.88 6.5l1.08 1.08 2.17-2.16" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 1.08l3.79 2.17V6.5c0 2.71-1.9 4.19-3.79 5.42-1.9-1.23-3.79-2.71-3.79-5.42V3.25L6.5 1.08z" stroke="#F5F5F7" stroke-opacity=".55" stroke-width=".975" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reproducible builds</h3>
-          <p>Every release can be rebuilt from public source and checked byte-for-byte against what you installed.</p>
-          <a class="trust__link" href="#download">Verify yours →</a>
-        </article>
+        <div class="trust__grid" data-stagger>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-key"/></svg></span>
+            <h3>Non-custodial, always</h3>
+            <p>Keys are generated and stored on your device and never leave it. Your coins are yours — Shroud can't freeze, seize, or lose them.</p>
+            <span class="tcard__num" aria-hidden="true">01</span>
+          </article>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-identification-card"/></svg></span>
+            <h3>No KYC, no accounts</h3>
+            <p>Download and use it. No sign-up, no email, no name. We hold almost nothing about you, so there's little to hand over.</p>
+            <span class="tcard__num" aria-hidden="true">02</span>
+          </article>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-eye-slash"/></svg></span>
+            <h3>No analytics or tracking</h3>
+            <p>No analytics, ads or tracking pixels. The app only talks to the servers it needs, and crash reports are optional — switch them off in Settings.</p>
+            <span class="tcard__num" aria-hidden="true">03</span>
+          </article>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-network"/></svg></span>
+            <h3>Tor supported</h3>
+            <p>Route your indexer and Electrum connections over Tor to keep your IP address out of the picture at the network layer.</p>
+            <span class="tcard__num" aria-hidden="true">04</span>
+          </article>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-hard-drives"/></svg></span>
+            <h3>Your node, your rules</h3>
+            <p>Connect your own node, or pick the Electrum server you trust in settings.</p>
+            <span class="tcard__num" aria-hidden="true">05</span>
+          </article>
+          <article class="tcard" data-glow>
+            <span class="tcard__icon" aria-hidden="true"><svg class="icon"><use href="#i-shield-check"/></svg></span>
+            <h3>Reproducible builds</h3>
+            <p>Every release can be rebuilt from public source and checked byte-for-byte against what you installed.</p>
+            <a class="link-arrow" href="#download"><span>Verify yours</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <span class="tcard__num" aria-hidden="true">06</span>
+          </article>
+        </div>
       </div>
     </section>
 
     <!-- ============ SECURITY & THREAT MODEL ============ -->
-    <section class="section security" id="security">
-      <div class="section__head reveal">
-        <p class="security__label"><span aria-hidden="true"></span>SECURITY &amp; THREAT MODEL</p>
-        <h2 class="security__h2">Honest about the limits.</h2>
-        <p class="security__sub">Privacy tools that overpromise get people hurt. Here is exactly what Shroud protects against — and what it can't.</p>
-      </div>
+    <section class="section security" id="security" data-nav-label="Security">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Security &amp; threat model</p>
+          <h2 class="h2 h2--xl" data-lines><span class="metal shimmer">Honest about the limits.</span></h2>
+          <p class="section__sub">Privacy tools that overpromise get people hurt. Here is exactly what Shroud protects against — and what it can't.</p>
+        </header>
 
-      <div class="security__cols">
-        <div class="threat threat--yes reveal">
-          <h3>✓ Protects against</h3>
-          <ul>
-            <li><i>✓</i><span><strong>Address-reuse clustering</strong> — payments to you can't be linked to each other on-chain.</span></li>
-            <li><i>✓</i><span><strong>Server surveillance of your history</strong> — scanning happens on-device.</span></li>
-            <li><i>✓</i><span><strong>Network-level IP correlation</strong> — when Tor is enabled.</span></li>
-            <li><i>✓</i><span><strong>Custodial risk</strong> — no one holds your keys but you.</span></li>
-            <li><i>✓</i><span><strong>Tampered downloads</strong> — reproducible, signed builds you can verify.</span></li>
-          </ul>
-        </div>
-        <div class="threat threat--no reveal">
-          <h3>✗ Does not protect against</h3>
-          <ul>
-            <li><i>✗</i><span><strong>A compromised device</strong> — malware with your seed phrase has your coins.</span></li>
-            <li><i>✗</i><span><strong>Sender-side leaks</strong> — if the sender doxxes the payment, cryptography can't help.</span></li>
-            <li><i>✗</i><span><strong>Amount analysis</strong> — splitting makes it harder, not impossible.</span></li>
-            <li><i>✗</i><span><strong>You publishing your own history</strong> — opsec still matters.</span></li>
-            <li><i>✗</i><span><strong>Losing your seed phrase</strong> — back it up. There is no recovery service, by design.</span></li>
-          </ul>
+        <div class="threats" data-threats>
+          <div class="threats__legend" data-reveal>
+            <span class="threats__key threats__key--yes"><i aria-hidden="true"></i>Protects against</span>
+            <span class="threats__key threats__key--no"><i aria-hidden="true"></i>Does not protect against</span>
+          </div>
+          <div class="threats__grid">
+            <h3 class="sr-only" id="threats-yes">Protects against</h3>
+            <ul class="threats__list" aria-labelledby="threats-yes">
+              <li class="tcap tcap--yes"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-link-break"/></svg></span><span class="tcap__text"><strong>Address-reuse clustering</strong><span class="sr-only"> — </span><span class="tcap__note">payments to you can't be linked to each other on-chain.</span></span></li>
+              <li class="tcap tcap--yes"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-eye-slash"/></svg></span><span class="tcap__text"><strong>Server surveillance of your history</strong><span class="sr-only"> — </span><span class="tcap__note">scanning happens on-device.</span></span></li>
+              <li class="tcap tcap--yes"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-network"/></svg></span><span class="tcap__text"><strong>Network-level IP correlation</strong><span class="sr-only"> — </span><span class="tcap__note">when Tor is enabled.</span></span></li>
+              <li class="tcap tcap--yes"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-shield-check"/></svg></span><span class="tcap__text"><strong>Custodial risk</strong><span class="sr-only"> — </span><span class="tcap__note">no one holds your keys but you.</span></span></li>
+              <li class="tcap tcap--yes"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-package"/></svg></span><span class="tcap__text"><strong>Tampered downloads</strong><span class="sr-only"> — </span><span class="tcap__note">reproducible, signed builds you can verify.</span></span></li>
+            </ul>
+            <h3 class="sr-only" id="threats-no">Does not protect against</h3>
+            <ul class="threats__list" aria-labelledby="threats-no">
+              <li class="tcap tcap--no"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-device-mobile"/></svg></span><span class="tcap__text"><strong>A compromised device</strong><span class="sr-only"> — </span><span class="tcap__note">malware with your seed phrase has your coins.</span></span></li>
+              <li class="tcap tcap--no"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-identification-card"/></svg></span><span class="tcap__text"><strong>Sender-side leaks</strong><span class="sr-only"> — </span><span class="tcap__note">if the sender doxxes the payment, cryptography can't help.</span></span></li>
+              <li class="tcap tcap--no"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-arrows-split"/></svg></span><span class="tcap__text"><strong>Amount analysis</strong><span class="sr-only"> — </span><span class="tcap__note">splitting makes it harder, not impossible.</span></span></li>
+              <li class="tcap tcap--no"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-link"/></svg></span><span class="tcap__text"><strong>You publishing your own history</strong><span class="sr-only"> — </span><span class="tcap__note">opsec still matters.</span></span></li>
+              <li class="tcap tcap--no"><span class="tcap__icon" aria-hidden="true"><svg class="icon"><use href="#i-key"/></svg></span><span class="tcap__text"><strong>Losing your seed phrase</strong><span class="sr-only"> — </span><span class="tcap__note">back it up. There is no recovery service, by design.</span></span></li>
+            </ul>
+          </div>
+          <div class="threats__rows" data-threat-rows data-reveal aria-hidden="true"></div>
         </div>
       </div>
     </section>
 
     <!-- ============ COMPARE ============ -->
-    <section class="section compare" id="compare">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>How we stack up</p>
-        <h2 class="h2">The edge, made concrete</h2>
-      </div>
+    <section class="section compare" id="compare" data-nav-label="Compare">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>How we stack up</p>
+          <h2 class="h2" data-lines>The edge, made concrete</h2>
+        </header>
 
-      <div class="table-scroll reveal">
-        <div class="ctable" role="table" aria-label="Shroud compared with a typical wallet">
-          <div class="ctable__row ctable__row--head" role="row">
-            <span class="ctable__cap" role="columnheader">Capability</span>
-            <span class="ctable__shroud ctable__shroud--head" role="columnheader">Shroud</span>
-            <span class="ctable__typ ctable__typ--head" role="columnheader">Typical wallet</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">Silent payments — send + receive</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>Full support</span>
-            <span class="ctable__typ" role="cell">Rare / receive-only</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">Payment detection</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>On-device scanning</span>
-            <span class="ctable__typ" role="cell">Often server-assisted</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">SP address as a saved contact</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>Built in</span>
-            <span class="ctable__typ" role="cell">—</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">Payment splitting for change ambiguity</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>One tap</span>
-            <span class="ctable__typ" role="cell">—</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">Custody</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>Non-custodial</span>
-            <span class="ctable__typ" role="cell">Varies</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">KYC / accounts</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>None</span>
-            <span class="ctable__typ" role="cell">Varies</span>
-          </div>
-          <div class="ctable__row" role="row">
-            <span class="ctable__cap" role="cell">Open source</span>
-            <span class="ctable__shroud" role="cell"><i aria-hidden="true">✓</i>MIT, reproducible</span>
-            <span class="ctable__typ" role="cell">Varies</span>
-          </div>
+        <div class="table-scroll" data-glow data-anim="compare" role="region" aria-label="Comparison table">
+          <table class="ctable">
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col" class="ctable__shroud"><span class="ctable__brand"><img src="assets/img/logo.png" alt="" width="18" height="18" />Shroud</span></th>
+                <th scope="col">Typical wallet</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Silent payments — send + receive</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Full support</td><td data-label="Typical wallet">Rare / receive-only</td></tr>
+              <tr><th scope="row">Payment detection</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>On-device scanning</td><td data-label="Typical wallet">Often server-assisted</td></tr>
+              <tr><th scope="row">SP address as a saved contact</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Built in</td><td data-label="Typical wallet"><span class="ctable__none" aria-label="Not available">—</span></td></tr>
+              <tr><th scope="row">Payment splitting for change ambiguity</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>One tap</td><td data-label="Typical wallet"><span class="ctable__none" aria-label="Not available">—</span></td></tr>
+              <tr><th scope="row">Custody</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Non-custodial</td><td data-label="Typical wallet">Varies</td></tr>
+              <tr><th scope="row">KYC / accounts</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>None</td><td data-label="Typical wallet">Varies</td></tr>
+              <tr><th scope="row">Open source</th><td class="ctable__shroud" data-label="Shroud"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>MIT, reproducible</td><td data-label="Typical wallet">Varies</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
     <!-- ============ DOWNLOAD ============ -->
-    <section class="section download" id="download">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Get Shroud</p>
-        <h2 class="h2">Download it.&nbsp;Then verify it.</h2>
-        <p class="section__sub section__sub--wide">Don't trust the download button — check the build. Every release is signed and reproducible from public source.</p>
-      </div>
+    <section class="section download" id="download" data-nav-label="Get Shroud">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Get Shroud</p>
+          <h2 class="h2" data-lines>Download it. <span class="tint">Then verify it.</span></h2>
+          <p class="section__sub">Don't trust the download button — check the build. Every release is signed and reproducible from public source.</p>
+        </header>
 
-      <div class="download__cols">
-        <div class="download__list reveal">
-          <a class="dl-row" href="#" data-noop title="Coming soon — not yet published" aria-disabled="true">
-            <span class="dl-row__icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M14.88 10.63v2.83a1.42 1.42 0 0 1-1.42 1.42H3.54a1.42 1.42 0 0 1-1.42-1.42v-2.83" stroke="#C4B5FD" stroke-width="1.42" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.96 7.08L8.5 10.63l3.54-3.55" stroke="#C4B5FD" stroke-width="1.42" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10.63V2.13" stroke="#C4B5FD" stroke-width="1.42" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="dl-row__meta">
-              <strong>Direct APK</strong>
-              <small>SIGNED · REPRODUCIBLE · v1.0.2</small>
-            </span>
-            <span class="dl-row__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="dl-row" href="#" data-noop title="Coming soon — not yet published" aria-disabled="true">
-            <span class="dl-row__icon" aria-hidden="true">
-              <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><circle cx="8.5" cy="8.5" r="7.08" stroke="#4ADE80" stroke-width="1.42" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.67 8.5h5.66M8.5 5.67v5.66" stroke="#4ADE80" stroke-width="1.42" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="dl-row__meta">
-              <strong>F-Droid</strong>
-              <small>ANDROID · FOSS REPOSITORY</small>
-            </span>
-            <span class="dl-row__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="dl-row" href="#" data-noop title="Coming soon — not yet published" aria-disabled="true">
-            <span class="dl-row__icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M6.03 18.38l-.89 1.5a.75.75 0 0 1-1.29-.76l.89-1.5a.75.75 0 0 1 1.29.76zM21.75 14.25h-4.48l-2.88-4.88a.75.75 0 0 0-1.29.77l5.75 9.74a.75.75 0 0 0 1.3-.76l-2-3.37h3.6a.75.75 0 0 0 0-1.5zM13.36 14.25H8.47l6.42-10.87a.75.75 0 1 0-1.29-.76L12 5.33l-1.6-2.72a.75.75 0 1 0-1.3.76l2.03 3.43-4.4 7.45H2.25a.75.75 0 0 0 0 1.5h11.11a.75.75 0 0 0 0-1.5z" fill="#fff"/></svg>
-            </span>
-            <span class="dl-row__meta">
-              <strong>App Store</strong>
-              <small>iOS 16+</small>
-            </span>
-            <span class="dl-row__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="dl-row" href="#" data-noop title="Coming soon — not yet published" aria-disabled="true">
-            <span class="dl-row__icon" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10.84 6L3.77 2.09a1.6 1.6 0 0 0-.67-.25.53.53 0 0 0-.54.13m8.28 4.03l-1.96 2m1.96-2l2.33 1.29c.83.46.83.95 0 1.41l-2.33 1.29-1.96-2 1.96-2zM8.88 8L2.56 1.97M8.88 8l-6.31 6.02M8.88 8l1.96 2-7.06 3.9c-.39.22-.91.4-1.21.12M2.56 1.97l-.02.003c-.21.187-.33.57-.33 1.127v9.8c0 .56.12.94.36 1.12" stroke="#fff" stroke-width=".67" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
-            <span class="dl-row__meta">
-              <strong>Play Store</strong>
-              <small>ANDROID 10+</small>
-            </span>
-            <span class="dl-row__arrow" aria-hidden="true">→</span>
-          </a>
-        </div>
+        <div class="download__grid">
+          <ul class="download__list" data-stagger>
+            <li><a class="dl-row dl-row--primary" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
+              <span class="dl-row__icon" aria-hidden="true"><svg class="icon"><use href="#i-download-simple"/></svg></span>
+              <span class="dl-row__meta"><strong>Direct APK</strong><small>Signed · reproducible · v1.0.2</small></span>
+              <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+            </a></li>
+            <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
+              <span class="dl-row__icon" aria-hidden="true"><svg class="icon"><use href="#i-package"/></svg></span>
+              <span class="dl-row__meta"><strong>F-Droid</strong><small>Android · FOSS repository</small></span>
+              <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+            </a></li>
+            <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
+              <span class="dl-row__icon" aria-hidden="true"><svg class="icon"><use href="#i-app-store-logo"/></svg></span>
+              <span class="dl-row__meta"><strong>App Store</strong><small>iOS 16+</small></span>
+              <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+            </a></li>
+            <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
+              <span class="dl-row__icon" aria-hidden="true"><svg class="icon"><use href="#i-google-play-logo"/></svg></span>
+              <span class="dl-row__meta"><strong>Play Store</strong><small>Android 10+</small></span>
+              <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+            </a></li>
+          </ul>
 
-        <div class="download__graphic reveal">
-          <img src="assets/img/download-graphic.png" alt="Phone running Shroud showing the Sync screen — wallet update 60% complete with restore progress and a note that the server never sees your addresses" loading="lazy" width="526" height="376" />
+          <figure class="download__graphic" data-reveal>
+            <div class="download__gl" data-gl-download aria-hidden="true"></div>
+            <img class="download__img" src="assets/img/download-graphic.png" alt="Phone running Shroud showing the Sync screen — wallet update 60% complete with restore progress and a note that the server never sees your addresses" loading="lazy" width="1053" height="752" />
+          </figure>
         </div>
       </div>
     </section>
 
     <!-- ============ ROADMAP + FAQ ============ -->
-    <section class="section roadmap" id="roadmap">
-      <div class="section__head reveal">
-        <p class="badge"><span class="badge__dot" aria-hidden="true"></span>Built in the open</p>
-        <h2 class="h2">Roadmap &amp; questions</h2>
-        <p class="section__sub">MIT-licensed and developed in public — funded by grants and donations, never by your data.</p>
-      </div>
+    <section class="section roadmap" id="roadmap" data-nav-label="Roadmap &amp; questions">
+      <div class="container">
+        <header class="section__head" data-reveal>
+          <p class="eyebrow"><svg class="eyebrow__mark" aria-hidden="true"><use href="#m-logo"/></svg>Built in the open</p>
+          <h2 class="h2" data-lines>Roadmap &amp; questions</h2>
+          <p class="section__sub">MIT-licensed and developed in public — funded by grants and donations, never by your data.</p>
+        </header>
+        <div class="roadmap__cols">
+          <div class="roadmap__col" data-reveal>
+            <h3 class="roadmap__label">Roadmap</h3>
+            <div class="acc acc--timeline" data-accordion>
+              <div class="acc__item acc__item--shipped">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="rm-1" id="rm-1-btn">
+                  <span class="acc__label">Silent payments — full send + receive</span>
+                  <span class="pill pill--solid">Shipped</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="rm-1" role="region" aria-labelledby="rm-1-btn"><div class="acc__inner"><p>Shipped in v1.0 — receive to one reusable address and send to any <code>sp1…</code> address, with unique outputs on-chain for every payment.</p></div></div>
+              </div>
+              <div class="acc__item acc__item--shipped">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="rm-2" id="rm-2-btn">
+                  <span class="acc__label">Tor, custom nodes &amp; payment splitting</span>
+                  <span class="pill pill--solid">Shipped</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="rm-2" role="region" aria-labelledby="rm-2-btn"><div class="acc__inner"><p>Shipped in v1.0.2 — route your wallet connections over Tor, connect your own node or a trusted Electrum server, and split payments in one tap.</p></div></div>
+              </div>
+              <div class="acc__item acc__item--next">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="rm-3" id="rm-3-btn">
+                  <span class="acc__label">Independent security audit</span>
+                  <span class="pill pill--outline">Next</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="rm-3" role="region" aria-labelledby="rm-3-btn"><div class="acc__inner"><p>Next up — an external audit of key handling, the scanning pipeline, and the build process, published in full.</p></div></div>
+              </div>
+              <div class="acc__item acc__item--next">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="rm-4" id="rm-4-btn">
+                  <span class="acc__label">Hardware wallet support</span>
+                  <span class="pill pill--outline">Next</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="rm-4" role="region" aria-labelledby="rm-4-btn"><div class="acc__inner"><p>Next up — sign with external devices while scan keys stay on the phone, so detection keeps working without exposing spend keys.</p></div></div>
+              </div>
+              <div class="acc__item acc__item--exploring">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="rm-5" id="rm-5-btn">
+                  <span class="acc__label">Coinjoin · Lightning · multisig</span>
+                  <span class="pill pill--dim">Exploring</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="rm-5" role="region" aria-labelledby="rm-5-btn"><div class="acc__inner"><p>Exploring — researching how each composes with silent payments without weakening the threat model. No promises until the design is sound.</p></div></div>
+              </div>
+            </div>
+          </div>
 
-      <div class="acc reveal" data-accordion>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Silent payments — full send + receive</span>
-            <span class="pill pill--solid">SHIPPED</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Shipped in v1.0 — receive to one reusable address and send to any <code>sp1…</code> address, with unique outputs on-chain for every payment.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Tor, custom nodes &amp; payment splitting</span>
-            <span class="pill pill--solid">SHIPPED</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Shipped in v1.0.2 — route your wallet connections over Tor, connect your own node or a trusted Electrum server, and split payments in one tap.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Independent security audit</span>
-            <span class="pill pill--outline">NEXT</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Next up — an external audit of key handling, the scanning pipeline, and the build process, published in full.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Hardware wallet support</span>
-            <span class="pill pill--outline">NEXT</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Next up — sign with external devices while scan keys stay on the phone, so detection keeps working without exposing spend keys.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Coinjoin · Lightning · multisig</span>
-            <span class="pill pill--dim">EXPLORING</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Exploring — researching how each composes with silent payments without weakening the threat model. No promises until the design is sound.</p></div>
-        </div>
-      </div>
-
-      <div class="acc acc--faq reveal" id="faq" data-accordion>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Is my privacy guaranteed?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>No — and anyone who says otherwise is selling something. Silent payments remove address-level linkability on-chain, but privacy has layers. See “Honest about the limits” for exactly what Shroud does and doesn't cover.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">How is Shroud funded? Is it really free?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Shroud is MIT-licensed and free. Development is funded by grants and donations — never by your data, and there is nothing to upsell.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Do I need to run my own node?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>No. You can connect to any Electrum server you trust, or your own node if you have one. Either way, scanning happens on your device — the server never learns which outputs are yours.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">What happens if Shroud disappears tomorrow?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Nothing happens to your coins. Your keys live on your device, and BIP-352 is an open standard — any compatible wallet can restore from your seed phrase.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Which devices are supported?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>Android 10+ via direct APK, F-Droid, or the Play Store, and iOS 16+ via the App Store.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Isn't the scanning slow on a phone?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>No — Shroud pulls compact tweak data instead of full blocks and tunes scanning for the best balance of speed and battery. A typical sync takes minutes, not hours.</p></div>
-        </div>
-        <div class="acc__item">
-          <button class="acc__btn" type="button" aria-expanded="false">
-            <span class="acc__label">Who builds this?</span>
-            <span class="acc__plus" aria-hidden="true">+</span>
-          </button>
-          <div class="acc__panel"><p>A small open-source team building in public. Every commit, build, and release is published — you never have to take our word for it.</p></div>
+          <div class="roadmap__col" id="faq" data-nav-label="FAQ" data-reveal>
+            <h3 class="roadmap__label">FAQ</h3>
+            <div class="acc" data-accordion>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-1" id="faq-1-btn">
+                  <span class="acc__label">Is my privacy guaranteed?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-1" role="region" aria-labelledby="faq-1-btn"><div class="acc__inner"><p>No — and anyone who says otherwise is selling something. Silent payments remove address-level linkability on-chain, but privacy has layers. See “Honest about the limits” for exactly what Shroud does and doesn't cover.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-2" id="faq-2-btn">
+                  <span class="acc__label">How is Shroud funded? Is it really free?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-2" role="region" aria-labelledby="faq-2-btn"><div class="acc__inner"><p>Shroud is MIT-licensed and free. Development is funded by grants and donations — never by your data, and there is nothing to upsell.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-3" id="faq-3-btn">
+                  <span class="acc__label">Do I need to run my own node?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-3" role="region" aria-labelledby="faq-3-btn"><div class="acc__inner"><p>No. You can connect to any Electrum server you trust, or your own node if you have one. Either way, scanning happens on your device — the server never learns which outputs are yours.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-4" id="faq-4-btn">
+                  <span class="acc__label">What happens if Shroud disappears tomorrow?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-4" role="region" aria-labelledby="faq-4-btn"><div class="acc__inner"><p>Nothing happens to your coins. Your keys live on your device, and BIP-352 is an open standard — any compatible wallet can restore from your seed phrase.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-5" id="faq-5-btn">
+                  <span class="acc__label">Which devices are supported?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-5" role="region" aria-labelledby="faq-5-btn"><div class="acc__inner"><p>Android 10+ via direct APK, F-Droid, or the Play Store, and iOS 16+ via the App Store.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-6" id="faq-6-btn">
+                  <span class="acc__label">Isn't the scanning slow on a phone?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-6" role="region" aria-labelledby="faq-6-btn"><div class="acc__inner"><p>No — Shroud pulls compact tweak data instead of full blocks and tunes scanning for the best balance of speed and battery. A typical sync takes minutes, not hours.</p></div></div>
+              </div>
+              <div class="acc__item">
+                <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-7" id="faq-7-btn">
+                  <span class="acc__label">Who builds this?</span>
+                  <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
+                </button></h4>
+                <div class="acc__panel" id="faq-7" role="region" aria-labelledby="faq-7-btn"><div class="acc__inner"><p>A small open-source team building in public. Every commit, build, and release is published — you never have to take our word for it.</p></div></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ============ FINALE ============ -->
     <section class="finale">
-      <a class="finale__link" href="#download" aria-label="Get Shroud">
-        <span class="finale__text">Get Shroud</span>
-        <span class="finale__arrow" aria-hidden="true">↗</span>
+      <div class="finale__field" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <svg class="finale__mark" aria-hidden="true"><use href="#m-ring"/></svg>
+      <p class="finale__lead" data-reveal>Private Bitcoin payments. <span class="tint">One address.</span></p>
+      <a class="finale__link" href="#download" data-magnetic>
+        <span class="finale__text metal shimmer">Get Shroud</span>
+        <span class="finale__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
       </a>
     </section>
   </main>
@@ -666,10 +731,12 @@
           <img src="assets/img/logo.png" alt="" width="26" height="26" />
           <span>Shroud</span>
         </a>
-        <div class="donate">
+        <div class="donate" data-glow>
           <div class="donate__head">
             <span>Donate — silent payment address</span>
-            <button class="donate__copy" type="button" data-copy="sp1qqw6vgrtdf8jys4z0m…dogfooding, obviously…9k3t">COPY</button>
+            <button class="donate__copy" type="button" data-magnetic data-copy="sp1qqw6vgrtdf8jys4z0m…dogfooding, obviously…9k3t" aria-label="Copy donation address">
+              <svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg><span data-copy-label>Copy</span>
+            </button>
           </div>
           <p class="donate__addr">sp1qqw6vgrtdf8jys4z0m…dogfooding, obviously…9k3t</p>
         </div>
@@ -696,8 +763,19 @@
     <div class="footer__bottom">
       <p>© 2026 SHROUD</p>
     </div>
+    <div class="wordmark" data-wordmark aria-hidden="true">
+      <div class="wordmark__inner">
+        <span class="wordmark__logo wordmark__fill"></span>
+        <span class="wordmark__text wordmark__fill">Shroud</span>
+      </div>
+    </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="assets/vendor/gsap.min.js" defer></script>
+  <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/lenis.min.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/veil.js" defer></script>
+  <script type="module" src="js/site.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js";
+import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8f";
 
 const root = document.documentElement;
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -134,8 +134,10 @@ function fitPhone() {
     if (aside) bottom = Math.max(bottom, aside.offsetTop + aside.offsetHeight);
   });
   const h = stage.offsetHeight;
-  const top = bottom + Math.max(28, h * 0.04);
-  const ph = Math.max(200, Math.min(h - top - h * 0.12, h * 0.5));
+  const top = bottom + Math.max(24, h * 0.035);
+  // the caption gets its own band at the bottom, clear of the phone
+  const reserve = Math.max(84, h * 0.12);
+  const ph = Math.max(180, Math.min(h - top - reserve, h * 0.5));
   stage.style.setProperty("--phone-top", `${Math.round(top)}px`);
   stage.style.setProperty("--phone-h", `${Math.round(ph)}px`);
 }
@@ -252,7 +254,7 @@ function initStage(downloadOnly = false) {
   const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapter__caption, .chapters__progress"));
   const dlEl = document.querySelector("[data-gl-download]");
   const mobile = window.matchMedia("(max-width: 899px), (max-aspect-ratio: 6/5)").matches;
-  import("./stage/stage.js")
+  import("./stage/stage.js?v=8f")
     .then(({ createStage }) =>
       createStage({
         story: { container, stage, frames, avoid, labelLayer, getProgress: () => progress.t },
@@ -260,6 +262,7 @@ function initStage(downloadOnly = false) {
         mobile,
         downloadOnly,
         reduced: !motion,
+        quality: window.__quality,
       })
     )
     .then((api) => {
@@ -290,6 +293,26 @@ function dropStage() {
   });
   gsap.set(story.querySelectorAll(".hero__copy, .hero__title, [data-hero-item], [data-standards], [data-chapter], .chapter__lead, .chapter__aside, .chapter__lead > *, .chapter__aside > *, .chapters__progress"), { clearProps: "all" });
   ScrollTrigger.refresh();
+}
+
+// Three.js and the model load only once their section is close to view,
+// after the device's quality tier has been settled.
+function whenNear(targets, fn) {
+  const els = targets.filter(Boolean);
+  const go = () => {
+    const q = window.__quality && window.__quality.ready;
+    (q || Promise.resolve()).then(() => whenIdle(fn));
+  };
+  if (!els.length || !("IntersectionObserver" in window)) return go();
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      go();
+    },
+    { rootMargin: "100% 0px" }
+  );
+  els.forEach((el) => io.observe(el));
 }
 
 function whenIdle(fn) {
@@ -959,10 +982,10 @@ function boot() {
     return;
   }
   signoff();
-  if (!useStage && !motion && webglAvailable() && document.querySelector("[data-gl-download]")) whenIdle(() => initStage(true));
+  if (!useStage && !motion && webglAvailable() && document.querySelector("[data-gl-download]")) whenNear([document.querySelector("[data-gl-download]")], () => initStage(true));
   if (useStage) {
     buildStory();
-    whenIdle(() => initStage());
+    whenNear([story, document.querySelector("[data-gl-download]")], () => initStage());
     let lastW = window.innerWidth;
     let timer = 0;
     window.addEventListener("resize", () => {

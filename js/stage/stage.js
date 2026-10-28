@@ -24,10 +24,10 @@ import {
   CanvasTexture,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { loadPhone } from "./phone.js";
-import { storyScreen, syncLoop, WALLET } from "./screens.js";
-import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js";
-import { RISE, BEATS, CHAPTERS } from "../timeline.js";
+import { loadPhone } from "./phone.js?v=8f";
+import { storyScreen, syncLoop, WALLET } from "./screens.js?v=8f";
+import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js?v=8f";
+import { RISE, BEATS, CHAPTERS } from "../timeline.js?v=8f";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const ss = (a, b, t) => {
@@ -145,9 +145,25 @@ function framePhone(camera, W, H, cy, ph, elev, target) {
   return d;
 }
 
-export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false }) {
-  const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+// What each quality tier spends. dpr: render resolution cap. rows/segments:
+// floor pucks and their roundness. simple: no clearcoat on the floor.
+// screen: phone screen texture scale. idle/dlIdle: ms between redraws when
+// only the slow idle motion is changing (Infinity = only redraw on change).
+const TIERS = {
+  high: { dpr: 1.5, aa: true, rows: 13, segments: 32, simple: false, screen: 2, idle: 42, dlIdle: 33, dlTurn: true },
+  mid: { dpr: 1.25, aa: true, rows: 12, segments: 20, simple: false, screen: 1.6, idle: 66, dlIdle: 50, dlTurn: true },
+  low: { dpr: 1, aa: false, rows: 10, segments: 14, simple: true, screen: 1.3, idle: Infinity, dlIdle: Infinity, dlTurn: false },
+};
+
+export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false, quality = null }) {
+  let tierName = (quality && quality.tier) || "high";
+  const Q = { ...TIERS[tierName] };
+  const renderer = new WebGLRenderer({ antialias: Q.aa, alpha: true, powerPreference: "high-performance" });
+  // the error log calls force the GPU to finish each shader on the spot,
+  // which stalls the first frame anything new is drawn
+  renderer.debug.checkShaderErrors = false;
+  let dprCap = Q.dpr;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.setClearColor(0x000000, 0);
@@ -184,7 +200,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   const world = new Group();
   scene.add(world);
 
-  const phone = kit.instance(2);
+  const phone = kit.instance(Q.screen);
   const phoneRig = new Group();
   phoneRig.add(phone.group);
   world.add(phoneRig);
@@ -196,7 +212,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   phoneRig.add(emitter);
 
   // the field of identical outputs, with open floor under the phone
-  const field = createField({ ...GRID, skip: (x, z) => Math.hypot(x, z * 1.15) < CLEAR });
+  const field = createField({ ...GRID, rows: Q.rows, segments: Q.segments, simple: Q.simple, skip: (x, z) => Math.hypot(x, z * 1.15) < CLEAR });
   const fieldGroup = new Group();
   fieldGroup.position.y = FLOOR;
   fieldGroup.add(field.mesh);
@@ -228,7 +244,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   const foundMat = moverMat.clone();
   foundMat.color.set(0xbbf7d0);
   foundMat.emissive.set(0x22c55e);
-  const moverGeo = puckGeometry(0.15, 0.07, 0.022);
+  const moverGeo = puckGeometry(0.15, 0.07, 0.022, Q.segments);
   const movers = [0, 1, 2].map(() => {
     const m = new Mesh(moverGeo, moverMat);
     const halo = glowSprite(ACCENT, 0.9, 0.5);
@@ -652,7 +668,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     dscene.environmentIntensity = 0.8;
     studio(dscene);
     const dcam = new PerspectiveCamera(24, 1, 0.1, 100);
-    const dphone = kit.instance(1.6);
+    const dphone = kit.instance(Math.min(1.6, Q.screen));
     const rig = new Group();
     rig.add(dphone.group);
     const glow = glowSprite(ACCENT, 4.6, 0.22);
@@ -770,8 +786,9 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     }
     spin.moving = moving;
     // idle: a slow turn either side of front, faded in after a drag
-    const idleYaw = reduced ? 0 : Math.sin((time * TAU) / 9) * 0.55 * spin.idle;
-    const idleBob = reduced ? 0 : Math.sin(time * 0.6) * 0.02;
+    const still = reduced || !Q.dlTurn;
+    const idleYaw = still ? 0 : Math.sin((time * TAU) / 9) * 0.55 * spin.idle;
+    const idleBob = still ? 0 : Math.sin(time * 0.6) * 0.02;
     rig.rotation.set(0.02 + spin.pitch, spin.yaw + idleYaw, 0);
     rig.position.y = idleBob;
     dl.phone.screen.update(syncLoop(time));
@@ -829,8 +846,9 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
       pointer.sx += (pointer.x - pointer.sx) * Math.min(1, dt * 1.2);
       pointer.sy += (pointer.y - pointer.sy) * Math.min(1, dt * 1.2);
       if (Math.abs(pointer.sx - px) + Math.abs(pointer.sy - py) > 0.0005) moving = true;
-      // the sway only needs ~30fps; scroll and transitions get every frame
-      if (!moving && !dirty && now - lastRender < 32) return;
+      // the idle sway needs few frames; scroll and transitions get every one
+      if (!moving && !dirty && now - lastRender < Q.idle) return;
+      watchPace(now, moving);
       dirty = false;
       lastRender = now;
       updateStory(smoothT, time, intro);
@@ -839,12 +857,55 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
       placeLabels();
     } else {
       // every frame while it's being turned; ~30fps while idling
-      if (!dirty && !spin.drag && !spin.moving && (reduced || now - lastRender < 32)) return;
+      const turning = spin.drag || spin.moving;
+      if (!dirty && !turning && (reduced || now - lastRender < Q.dlIdle)) return;
+      watchPace(now, turning);
       dirty = false;
       lastRender = now;
       updateDownload(time);
       renderer.render(dl.scene, dl.camera);
     }
+  }
+
+  /* ---------- if frames drop while moving, render less ---------- */
+  const pace = { last: 0, ema: 16, n: 0, cool: 0, active: false };
+  function watchPace(now, active) {
+    const gap = now - pace.last;
+    const was = pace.active;
+    pace.last = now;
+    pace.active = active;
+    // only judge back-to-back frames while something is actually moving
+    if (!active || !was || gap > 2000) {
+      pace.n = 0;
+      return;
+    }
+    pace.ema = pace.n ? pace.ema + (gap - pace.ema) * 0.08 : gap;
+    pace.n++;
+    // a long run of slightly slow frames, or a few very slow ones
+    const slow = (pace.n >= 45 && pace.ema > 30) || (pace.n >= 6 && pace.ema > 120);
+    if (!slow || now < pace.cool) return;
+    pace.n = 0;
+    pace.cool = now + 2500;
+    stepDown();
+  }
+  function stepDown() {
+    if (quality && quality.tier !== "low") quality.down();
+    const next = Math.max(0.75, +(dprCap - 0.25).toFixed(2));
+    if (next === dprCap) return;
+    dprCap = next;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+    const a = active;
+    active = null;
+    if (a) use(a);
+  }
+  if (quality && quality.on) {
+    quality.on((t) => {
+      tierName = t;
+      // the slower idle pacing of a lower tier applies right away
+      Q.idle = Math.max(Q.idle, TIERS[t].idle);
+      Q.dlIdle = Math.max(Q.dlIdle, TIERS[t].dlIdle);
+      if (!TIERS[t].dlTurn) Q.dlTurn = false;
+    });
   }
 
   function start() {
@@ -881,10 +942,16 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   frameStory(smoothT);
   fieldGroup.visible = true;
   movers.forEach((m) => (m.visible = true));
-  renderer.compile(scene, camera);
+  // compiled up front (in parallel where the browser allows), so scrolling
+  // never waits on a shader
+  const parallel = renderer.compileAsync && renderer.extensions.has("KHR_parallel_shader_compile");
+  // drawing once as well makes the driver finish linking now, not on the
+  // first frame each object appears
+  const warm = (sc, cam) => (parallel ? renderer.compileAsync(sc, cam) : Promise.resolve(renderer.compile(sc, cam))).then(() => renderer.render(sc, cam));
+  await warm(scene, camera);
   if (dl) {
     updateDownload(0);
-    renderer.compile(dl.scene, dl.camera);
+    await warm(dl.scene, dl.camera);
   }
   movers.forEach((m) => (m.visible = false));
   updateStory(smoothT, performance.now() / 1000, 0);

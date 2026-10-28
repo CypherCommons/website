@@ -1143,7 +1143,18 @@ code {
   .chapter { grid-template-areas: "lead" "aside" "caption" "figure"; }
 }
 @media (max-width: 899px), (max-aspect-ratio: 6/5) {
-  .has-stage .chapter__caption.chip { top: auto; bottom: 18px; font-size: 11px; }
+  /* phones: the caption owns a band at the bottom of the small viewport
+     (svh, so Safari's toolbars never cover it); the scene's floating labels
+     would compete with it there, so they stay off */
+  .has-stage .chapter__caption.chip {
+    top: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: calc(100vw - var(--gutter) * 2);
+    max-width: 420px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .has-stage.is-3d .story__labels { display: none; }
 }
 
 /* the box the phone fills once it has risen */
@@ -2518,7 +2529,10 @@ td.ctable__shroud .icon {
   }
   .ctable tbody td { min-width: 0; overflow-wrap: anywhere; }
   .ctable tbody td:last-child { border-left: 1px solid var(--w08); }
-  .ctable tbody tr:hover { background: none; }
+  .ctable tbody tr:hover { background: linear-gradient(90deg, rgba(139, 108, 255, 0.07) 0 50%, transparent 50%); }
+  .ctable tbody tr:hover .ctable__shroud,
+  .ctable tbody .ctable__shroud { background: none; }
+  .ctable tbody td.ctable__shroud > .icon { flex: none; }
   .ctable tbody th {
     grid-column: 1 / -1;
     width: auto;
@@ -2793,7 +2807,7 @@ thead .ctable__shroud::after {
    ============================================================ */
 .footer {
   position: relative;
-  padding: 80px var(--gutter) clamp(12px, 2vw, 28px);
+  padding: 64px var(--gutter) clamp(12px, 2vw, 24px);
   overflow: hidden;
   border-top: 1px solid var(--w07);
 }
@@ -2910,7 +2924,7 @@ thead .ctable__shroud::after {
 .footer__col a[aria-current="page"] { color: var(--text); }
 .footer__bottom {
   max-width: var(--container);
-  margin: 64px auto 0;
+  margin: 44px auto 0;
   padding-top: 24px;
   border-top: 1px solid var(--w07);
 }
@@ -2929,8 +2943,8 @@ thead .ctable__shroud::after {
   display: grid;
   place-items: center;
   max-width: var(--container);
-  margin: clamp(48px, 7vw, 96px) auto 0;
-  padding-bottom: clamp(24px, 4vw, 48px);
+  margin: clamp(28px, 4vw, 48px) auto 0;
+  padding-bottom: clamp(12px, 2vw, 24px);
   pointer-events: none;
 }
 .signoff::before {
@@ -2942,10 +2956,10 @@ thead .ctable__shroud::after {
 }
 .signoff__mark {
   position: relative;
-  width: min(520px, 78vw);
+  width: min(260px, 46vw);
   aspect-ratio: 1;
   overflow: visible;
-  transform: translateY(calc((1 - var(--r)) * 40px)) scale(calc(0.94 + var(--r) * 0.06));
+  transform: translateY(calc((1 - var(--r)) * 24px)) scale(calc(0.94 + var(--r) * 0.06));
 }
 .signoff__fill { fill: rgba(196, 181, 253, 0.035); }
 .signoff__glow { opacity: calc(var(--r) * var(--r)); }
@@ -2961,7 +2975,7 @@ thead .ctable__shroud::after {
   .footer__brandcol { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) {
-  .footer { padding-top: 64px; }
+  .footer { padding-top: 48px; }
   .footer__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px 24px; }
 }
 
@@ -3317,6 +3331,77 @@ thead .ctable__shroud::after {
   .table-scroll { border-radius: var(--r-card); }
   .ctable thead { border-radius: var(--r-card) var(--r-card) 0 0; }
   .ctable thead .ctable__shroud { border-radius: var(--r-card) 0 0 0; }
+}
+
+/* ============================================================
+   QUALITY TIERS — lower tiers keep the look but drop the costly
+   live effects: blur behind glass, animated sheens and glows
+   ============================================================ */
+[data-tier="mid"] .nav__pill,
+[data-tier="low"] .nav__pill {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.96), rgba(13, 13, 16, 0.94));
+}
+[data-tier="mid"] .standards,
+[data-tier="low"] .standards {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: linear-gradient(180deg, rgba(5, 5, 6, 0.82), rgba(5, 5, 6, 0.95));
+}
+[data-tier="mid"] .shimmer,
+[data-tier="low"] .shimmer { animation: none; }
+[data-tier="low"] .hero::before,
+[data-tier="low"] .story__stage::after { animation: none; }
+[data-tier="low"] .section + .section::before { box-shadow: none; }
+
+/* ============================================================
+   STORE BADGES — App Store and Google Play, official-style dark
+   badges on the site's 16px button radius
+   ============================================================ */
+.btn--store {
+  --btn-h: 56px;
+  gap: 12px;
+  padding: 0 22px 0 18px;
+  color: #fff;
+  background: linear-gradient(180deg, #16161b 0%, #0b0b0e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 30px -16px rgba(0, 0, 0, 0.9);
+}
+.btn--store .icon { width: 26px; height: 26px; }
+.store__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: left;
+  line-height: 1;
+}
+.store__text small {
+  font-size: 10.5px;
+  font-weight: 450;
+  letter-spacing: 0.02em;
+  color: var(--text-80);
+}
+.store__text strong {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+.btn--store:hover,
+.btn--store:focus-visible {
+  border-color: rgba(196, 181, 253, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(139, 108, 255, 0.18), 0 16px 36px -14px rgba(124, 58, 237, 0.75);
+}
+.btn--store::before { background: radial-gradient(160px circle at var(--mx, 50%) var(--my, 50%), rgba(196, 181, 253, 0.16), transparent 70%); }
+.hero__actions .btn--store { min-width: 196px; }
+@media (max-width: 520px) {
+  .btn--store { --btn-h: 54px; justify-content: center; }
+  .hero__actions .btn--store { min-width: 0; }
+}
+@media (max-width: 899px), (max-aspect-ratio: 6/5) {
+  .has-stage .hero__actions .btn--store { --btn-h: 52px; padding: 0 18px 0 16px; }
 }
 
 /* ============================================================

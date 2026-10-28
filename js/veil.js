@@ -15,6 +15,9 @@
   var root = document.documentElement;
   var stage = canvas.parentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var quality = window.__quality;
+  // below the top tier the addresses stay as still, faint text
+  var lite = function () { return !!quality && quality.tier !== "high"; };
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   var BECH = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
@@ -201,7 +204,7 @@
   }
 
   function sync() {
-    var go = !reduce.matches && inView && fade > 0.01 && !document.hidden && W > 0;
+    var go = !reduce.matches && !lite() && inView && fade > 0.01 && !document.hidden && W > 0;
     if (go === running) return;
     running = go;
     if (go) {
@@ -243,8 +246,16 @@
         sync();
       });
     }
+    if (quality && quality.on) {
+      quality.on(function () {
+        if (!lite()) return;
+        light.on = light.target = 0;
+        draw(performance.now());
+        sync();
+      });
+    }
     window.addEventListener("pointermove", function (e) {
-      if (!fine.matches || reduce.matches) return;
+      if (!fine.matches || reduce.matches || lite()) return;
       var r = canvas.getBoundingClientRect();
       var x = e.clientX - r.left;
       var y = e.clientY - r.top;

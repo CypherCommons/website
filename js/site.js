@@ -1,4 +1,4 @@
-import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8g";
+import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8k";
 
 const root = document.documentElement;
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -134,10 +134,11 @@ function fitPhone() {
     if (aside) bottom = Math.max(bottom, aside.offsetTop + aside.offsetHeight);
   });
   const h = stage.offsetHeight;
-  const top = bottom + Math.max(24, h * 0.035);
-  // the caption gets its own band at the bottom, clear of the phone
-  const reserve = Math.max(84, h * 0.12);
-  const ph = Math.max(180, Math.min(h - top - reserve, h * 0.5));
+  const top = bottom + Math.max(18, h * 0.025);
+  // below the phone: room for the payments landing on the floor, then the
+  // caption's own band at the bottom
+  const reserve = Math.max(150, h * 0.26);
+  const ph = Math.max(170, Math.min(h - top - reserve, h * 0.4));
   stage.style.setProperty("--phone-top", `${Math.round(top)}px`);
   stage.style.setProperty("--phone-h", `${Math.round(ph)}px`);
 }
@@ -254,7 +255,7 @@ function initStage(downloadOnly = false) {
   const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapter__caption, .chapters__progress"));
   const dlEl = document.querySelector("[data-gl-download]");
   const mobile = window.matchMedia("(max-width: 899px), (max-aspect-ratio: 6/5)").matches;
-  import("./stage/stage.js?v=8g")
+  import("./stage/stage.js?v=8k")
     .then(({ createStage }) =>
       createStage({
         story: { container, stage, frames, avoid, labelLayer, getProgress: () => progress.t },
@@ -486,7 +487,9 @@ function signoff() {
   }
   mark.style.setProperty("--r", "0");
   const set = (self) => mark.style.setProperty("--r", self.progress.toFixed(4));
-  ScrollTrigger.create({ trigger: mark, start: "top bottom", end: "bottom bottom", onUpdate: set, onRefresh: set });
+  // the reveal completes as the page reaches its end, wherever that falls
+  const footer = mark.closest("footer") || mark;
+  ScrollTrigger.create({ trigger: mark, start: "top bottom", endTrigger: footer, end: "bottom bottom", onUpdate: set, onRefresh: set });
 }
 
 /* ============================================================

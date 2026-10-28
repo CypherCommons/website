@@ -1,6 +1,6 @@
 import { Group, Box3, Vector3, MeshPhysicalMaterial, MeshStandardMaterial, Color } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { PhoneScreen } from "./screens.js?v=8g";
+import { PhoneScreen } from "./screens.js?v=8k";
 
 const HEIGHT = 2.6; // scene units for the 147.6 mm enclosure
 

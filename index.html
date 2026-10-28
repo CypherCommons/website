@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="preload" href="assets/fonts/ClashGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/styles.css?v=8g" />
+  <link rel="stylesheet" href="css/styles.css?v=8k" />
   <script>
     (function (root) {
       root.classList.add("js");
@@ -603,12 +603,12 @@
           <ul class="download__list" data-stagger>
             <li><a class="dl-row dl-row--primary" href="https://apps.apple.com/us/app/shroud-wallet/id6821538806" target="_blank" rel="noopener" data-glow>
               <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-app-store-logo"/></svg></span>
-              <span class="dl-row__meta"><strong>Download on the App Store</strong><small>iOS 16+</small></span>
+              <span class="dl-row__meta"><strong><span class="dl-row__pre">Download on the </span>App Store</strong><small>iOS 16+</small></span>
               <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
             </a></li>
             <li><a class="dl-row dl-row--primary" href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener" data-glow>
               <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-google-play-logo"/></svg></span>
-              <span class="dl-row__meta"><strong>Get it on Google Play</strong><small>Android 10+</small></span>
+              <span class="dl-row__meta"><strong><span class="dl-row__pre">Get it on </span>Google Play</strong><small>Android 10+</small></span>
               <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
             </a></li>
             <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
@@ -779,31 +779,33 @@
         <a href="support/">Support</a>
         <a href="#" data-noop title="Coming soon">MIT License</a>
       </nav>
+      <div class="signoff" data-signoff aria-hidden="true">
+        <svg class="signoff__mark" viewBox="88 88 336 336">
+          <defs>
+            <radialGradient id="signoff-light" cx="50%" cy="38%" r="65%">
+              <stop offset="0" stop-color="#c4b5fd" stop-opacity=".55"/>
+              <stop offset=".55" stop-color="#8b6cff" stop-opacity=".18"/>
+              <stop offset="1" stop-color="#8b6cff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g class="signoff__inner">
+            <use class="signoff__fill" href="#m-logo" x="88" y="88" width="336" height="336"/>
+            <use class="signoff__glow" href="#m-logo" x="88" y="88" width="336" height="336" fill="url(#signoff-light)"/>
+            <use class="signoff__line" href="#m-logo" x="88" y="88" width="336" height="336"/>
+          </g>
+        </svg>
+      </div>
     </div>
     <div class="footer__bottom">
       <p>© 2026 SHROUD</p>
-    </div>
-    <div class="signoff" data-signoff aria-hidden="true">
-      <svg class="signoff__mark" viewBox="88 88 336 336">
-        <defs>
-          <radialGradient id="signoff-light" cx="50%" cy="38%" r="65%">
-            <stop offset="0" stop-color="#c4b5fd" stop-opacity=".55"/>
-            <stop offset=".55" stop-color="#8b6cff" stop-opacity=".18"/>
-            <stop offset="1" stop-color="#8b6cff" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <use class="signoff__fill" href="#m-logo" x="88" y="88" width="336" height="336"/>
-        <use class="signoff__glow" href="#m-logo" x="88" y="88" width="336" height="336" fill="url(#signoff-light)"/>
-        <use class="signoff__line" href="#m-logo" x="88" y="88" width="336" height="336"/>
-      </svg>
     </div>
   </footer>
 
   <script src="assets/vendor/gsap.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/vendor/lenis.min.js" defer></script>
-  <script src="js/main.js?v=8g" defer></script>
-  <script src="js/veil.js?v=8g" defer></script>
-  <script type="module" src="js/site.js?v=8g"></script>
+  <script src="js/main.js?v=8k" defer></script>
+  <script src="js/veil.js?v=8k" defer></script>
+  <script type="module" src="js/site.js?v=8k"></script>
 </body>
 </html>

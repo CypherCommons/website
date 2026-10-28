@@ -18,7 +18,7 @@ js/stage/           # three.js scene: stage.js (camera, story choreography, rend
                     # screens.js (live app screens drawn on the phone), objects.js (output pucks, glow, floor rings)
 assets/models/      # phone.glb (quantised, KHR_mesh_quantization)
 assets/fonts/       # self-hosted Clash Grotesk (display), Inter (body), JetBrains Mono (mono), variable woff2
-assets/icons/       # Phosphor icons (regular), MIT — the homepage inlines them as an SVG sprite
+assets/icons/       # Lucide icons (ISC) and official brand marks from Simple Icons (CC0) — the homepage inlines them as an SVG sprite
 assets/vendor/      # gsap, ScrollTrigger, lenis, three (MIT; addons: GLTFLoader, RoomEnvironment, BufferGeometryUtils, SkeletonUtils)
 assets/img/         # logo, screenshots, static phone and download fallbacks
 ```

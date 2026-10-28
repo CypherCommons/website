@@ -264,6 +264,22 @@ export class PhoneScreen {
       this.paint(state.to === undefined || p >= 1 ? state.to : state.from, state);
     } else if (p >= 1) {
       this.paint(state.to, state);
+    } else if (state.mode === "fade") {
+      // chapter changes: a quick cross-fade, drawn through a second canvas so
+      // each screen keeps its own alpha
+      this.paint(state.from, state);
+      const off = this.layer();
+      const main = this.ctx;
+      this.ctx = off.ctx;
+      off.ctx.setTransform(this.k, 0, 0, this.k, 0, 0);
+      off.ctx.globalAlpha = 1;
+      this.paint(state.to, state);
+      this.ctx = main;
+      main.save();
+      main.setTransform(1, 0, 0, 1, 0, 0);
+      main.globalAlpha = p;
+      main.drawImage(off.canvas, 0, 0);
+      main.restore();
     } else {
       // push: the new screen slides in over the old one; pop: the reverse
       const push = state.dir !== -1;
@@ -289,6 +305,16 @@ export class PhoneScreen {
     this.statusBar();
     this.texture.needsUpdate = true;
     return true;
+  }
+
+  layer() {
+    if (!this.fadeLayer) {
+      const canvas = document.createElement("canvas");
+      canvas.width = this.width;
+      canvas.height = this.height;
+      this.fadeLayer = { canvas, ctx: canvas.getContext("2d") };
+    }
+    return this.fadeLayer;
   }
 
   paint(name, s) {
@@ -730,10 +756,11 @@ const win = (t, a, b) => clamp01((t - a) / (b - a));
 /** Screen state for story time t (scroll) and wall time `now` (seconds). */
 export function storyScreen(t, now, B) {
   const s = { tap: null, home: {}, send: {}, receive: {}, sync: {} };
-  const route = (from, to, a, b, dir = 1) => {
+  const route = (from, to, a, b, dir = 1, fade = false) => {
     s.from = from;
     s.to = to;
     s.dir = dir;
+    if (fade) s.mode = "fade";
     s.p = Math.round(win(t, a, b) * 40) / 40;
   };
   const tap = (id, a) => {
@@ -743,9 +770,9 @@ export function storyScreen(t, now, B) {
 
   // where we are in the app
   if (t < B.toReceive[0]) route("home", "send", B.sendPush[0], B.sendPush[1]);
-  else if (t < B.toReceive[1]) route("send", "home", B.toReceive[0], B.toReceive[0] + 0.12, -1);
+  else if (t < B.toReceive[1]) route("send", "home", B.toReceive[0], B.toReceive[0] + 0.12, -1, true);
   else if (t < B.toHome) route("home", "receive", B.toReceive[1], B.toReceive[1] + 0.12);
-  else if (t < B.toSync) route("receive", "home", B.toHome, B.toHome + 0.12, -1);
+  else if (t < B.toSync) route("receive", "home", B.toHome, B.toHome + 0.12, -1, true);
   else if (t < B.backHome) route("home", "sync", B.toSync, B.toSync + 0.12);
   else route("sync", "home", B.backHome, B.backHome + 0.12, -1);
 

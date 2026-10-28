@@ -27,7 +27,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { loadPhone } from "./phone.js";
 import { storyScreen, syncLoop, WALLET } from "./screens.js";
 import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js";
-import { RISE, BEATS } from "../timeline.js";
+import { RISE, BEATS, CHAPTERS } from "../timeline.js";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const ss = (a, b, t) => {
@@ -47,7 +47,16 @@ const PHONE_H = 2.6;
 const FLOOR = -1.66;
 const GRID = { cols: 27, rows: 13, gap: 0.44, x0: -5.72, z0: 2.6 };
 const CLEAR = 0.9; // open floor under the phone
-const SWAY = { amp: 0.3, period: 10.5 }; // about 17 degrees each way
+const SWAY = { amp: 0.05, period: 10.5 }; // a faint idle drift; scrolling does the real turning
+
+// Scroll-linked motion: a few degrees of yaw and tilt that follow the story
+// position, so the phone visibly answers the scroll.
+const SCROLL_YAW = 0.13; // ~7.5 degrees
+const SCROLL_TILT = 0.035; // ~2 degrees
+// At each chapter change the phone makes a short turn; where the screen
+// changes too, its cross-fade lands on the middle of the turn.
+const TURN = { amp: 0.17, width: 0.2 };
+const TURNS = [BEATS.toReceive[0] + 0.06, CHAPTERS[2].enter + 0.06, BEATS.toHome + 0.06];
 
 // where each beat lands, per layout (nearest open slot is used)
 const TARGETS = {
@@ -446,6 +455,7 @@ export async function createStage({ story, download, mobile }) {
 
   /* ---------- per-frame story state ---------- */
   const pose = [0, 0];
+  const turned = { yaw: 0, tilt: 0, at: 0 };
   const v = new Vector3();
   const lift = new Float32Array(N);
 
@@ -454,7 +464,20 @@ export async function createStage({ story, download, mobile }) {
     samplePose(t, pose);
     const sway = Math.sin((time * Math.PI * 2) / SWAY.period) * SWAY.amp * lerp(0.55, 1, ss(RISE[0], RISE[1], t));
     phoneRig.position.set(0, Math.sin(time * 0.55) * 0.02 - (1 - intro) * 0.5, 0);
-    phoneRig.rotation.set(pose[1] + Math.sin(time * 0.37) * 0.012 + pointer.sy * 0.03, pose[0] + sway + pointer.sx * 0.04, 0);
+    const risen = ss(RISE[0], RISE[1], t);
+    let yaw = pose[0] + Math.sin(t * 1.9) * SCROLL_YAW * lerp(0.35, 1, risen);
+    const tilt = pose[1] + Math.sin(t * 2.6 + 0.6) * SCROLL_TILT * risen;
+    TURNS.forEach((c, i) => {
+      const u = win(t, c - TURN.width / 2, c + TURN.width / 2);
+      if (u > 0 && u < 1) yaw += Math.sin(u * Math.PI) * TURN.amp * (i % 2 ? -1 : 1);
+    });
+    // smoothed toward the scroll target, independent of frame rate
+    const dt = Math.min(0.1, Math.max(0, time - turned.at));
+    turned.at = time;
+    const k = 1 - Math.exp(-dt * 10);
+    turned.yaw += (yaw - turned.yaw) * k;
+    turned.tilt += (tilt - turned.tilt) * k;
+    phoneRig.rotation.set(turned.tilt + Math.sin(time * 0.37) * 0.012 + pointer.sy * 0.03, turned.yaw + sway + pointer.sx * 0.04, 0);
     phoneRig.updateMatrixWorld();
     const emit = emitter.getWorldPosition(new Vector3());
 

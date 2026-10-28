@@ -1,6 +1,7 @@
 /* ============================================================
-   Hero veil: address fragments drifting through the dark that
-   break up into grain around the headline and the pointer.
+   Hero background: one address, many outputs. A faint silent
+   payment address sits behind the headline; every few seconds it
+   decodes into a fresh taproot output, holds, then folds back.
    ============================================================ */
 (function () {
   "use strict";
@@ -12,241 +13,180 @@
 
   var root = document.documentElement;
   var copy = document.querySelector(".hero__copy");
+  var title = copy && copy.querySelector(".hero__title");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   var BECH = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
-  var HEX = "0123456789abcdef";
-  var GREY = "245,245,247";
-  var LAV = "196,181,253";
+  var NOISE = BECH + "0123456789abcdef#%*+=<>/";
   var FONT = '"JetBrains Mono", ui-monospace, monospace';
-  var FPS = 30;
+  // the donation address's opening and closing characters, carried through
+  var SP_HEAD = "sp1qqw6vgrtdf8jys4z0m";
+  var SP_FILL = "q8ks2y7cfa0dhv5xj3nmep4wlg9ru6tz";
+  var SP_TAIL = "9k3t";
+  var FPS = 24;
+
+  // phase lengths, ms
+  var IDLE = 4600;
+  var DECODE = 1400;
+  var HOLD = 2600;
 
   var W = 0;
   var H = 0;
-  var scale = 1;
-  var frags = [];
-  var zone = { x: 0, y: 0, rx: 1, ry: 1 };
-  var pointer = { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4, k: 0, on: false };
-  var widths = {};
+  var dpr = 1;
+  var line = { x: 0, y: 0, size: 14, cw: 9, len: 44, dim: 1 };
+  var sp = "";
+  var target = "";
+  var shown = [];
+  var from = "";
+  var to = "";
+  var phase = "idle";
+  var phaseAt = 0;
+  var resolveAt = [];
   var running = false;
   var inView = true;
   var fade = 1;
   var last = 0;
   var raf = 0;
-  var flashAt = 0;
 
-  function rnd(a, b) { return a + Math.random() * (b - a); }
-  function pick(set, n) {
-    var s = "";
-    for (var i = 0; i < n; i++) s += set[(Math.random() * set.length) | 0];
+  function pick(set) { return set[(Math.random() * set.length) | 0]; }
+
+  // Both strings share one length and one ellipsis position, so the "…"
+  // stays put while everything around it changes.
+  function spAddress(len) {
+    var head = len - SP_TAIL.length - 1;
+    var body = (SP_HEAD + SP_FILL + SP_FILL).slice(0, head);
+    return body + "…" + SP_TAIL;
+  }
+  function taprootOutput(len) {
+    var head = len - 5;
+    var s = "bc1p";
+    while (s.length < head) s += pick(BECH);
+    s += "…";
+    for (var i = 0; i < 4; i++) s += pick(BECH);
     return s;
   }
 
-  // Shapes of things that show up on-chain: addresses, txids, raw bytes.
-  function phrase() {
-    var r = Math.random();
-    if (r < 0.26) return { text: "bc1p" + pick(BECH, 6 + ((Math.random() * 5) | 0)) + "…" + pick(BECH, 4), set: BECH, lock: 4 };
-    if (r < 0.44) return { text: "sp1qq" + pick(BECH, 6 + ((Math.random() * 4) | 0)) + "…" + pick(BECH, 4), set: BECH, lock: 5 };
-    if (r < 0.58) return { text: "bc1q" + pick(BECH, 8) + "…" + pick(BECH, 4), set: BECH, lock: 4 };
-    if (r < 0.8) return { text: pick(HEX, 8) + " " + pick(HEX, 8), set: HEX, lock: 0 };
-    var groups = 3 + ((Math.random() * 3) | 0);
-    var out = [];
-    for (var i = 0; i < groups; i++) out.push(pick(HEX, 2));
-    return { text: out.join(" "), set: HEX, lock: 0 };
-  }
-
-  function charWidth(size) {
-    if (!widths[size]) {
-      ctx.font = size + "px " + FONT;
-      widths[size] = ctx.measureText("0").width;
-    }
-    return widths[size];
-  }
-
-  function make(x, row) {
-    var depth = Math.random();
-    var size = depth < 0.45 ? 10 : depth < 0.8 ? 11 : 12.5;
-    var p = phrase();
-    var tint = Math.random() < 0.3;
-    return {
-      x: x,
-      y: row,
-      size: size,
-      v: -(5 + depth * 11),
-      a: (tint ? rnd(0.3, 0.46) : rnd(0.18, 0.34) * (0.7 + depth * 0.5)) * (W < 600 ? 0.8 : 1),
-      tint: tint,
-      chars: p.text.split(""),
-      set: p.set,
-      lock: p.lock,
-      cw: charWidth(size),
-      bob: rnd(0, Math.PI * 2),
-      flash: 0,
-    };
-  }
-
-  function measureZone() {
+  function measure() {
     var c = canvas.getBoundingClientRect();
-    if (!copy) {
-      zone = { x: W / 2, y: H * 0.36, rx: W * 0.32, ry: H * 0.24 };
-      return;
-    }
-    var r = copy.getBoundingClientRect();
-    var title = copy.querySelector(".hero__title");
-    var t = title ? title.getBoundingClientRect() : r;
-    var top = Math.min(t.top, r.top) - c.top;
-    var bottom = r.bottom - c.top;
-    var width = Math.max(t.width, Math.min(r.width, W));
-    zone = {
-      x: r.left - c.left + r.width / 2,
-      y: (top + bottom) / 2,
-      rx: Math.max(160, width * 0.54),
-      ry: Math.max(120, (bottom - top) * 0.58),
-    };
-  }
-
-  function seed() {
-    frags = [];
-    var gap = W < 600 ? 24 : 28;
-    var rows = Math.floor((H - 70) / gap);
-    var density = Math.max(1.1, Math.min(2.4, W / 640));
-    for (var i = 0; i < rows; i++) {
-      var y = 74 + i * gap + rnd(-4, 4);
-      var count = Math.max(1, Math.round(density + rnd(-0.4, 0.4)));
-      for (var j = 0; j < count; j++) {
-        frags.push(make(((j + Math.random() * 0.8) / count) * (W + 160) - 80, y));
-      }
+    var t = (title || copy || canvas).getBoundingClientRect();
+    var narrow = W < 700;
+    line.len = narrow ? 28 : 44;
+    var span = Math.min(W - 32, Math.max(260, t.width * (narrow ? 0.96 : 0.86)));
+    var below = W < 900;
+    line.size = Math.max(11, Math.min(below ? 16 : 22, span / (line.len * 0.6 * 1.14)));
+    // narrower screens: the headline wraps, so the line sits behind it, fainter
+    line.dim = below ? 0.6 : 1;
+    line.cw = line.size * 0.6 * 1.14;
+    line.x = (W - line.cw * line.len) / 2;
+    line.y = t.top - c.top + t.height * (below ? 0.5 : 0.52);
+    if (!title) line.y = H * 0.34;
+    var nextSp = spAddress(line.len);
+    if (nextSp !== sp) {
+      sp = nextSp;
+      shown = sp.split("");
+      phase = "idle";
+      phaseAt = performance.now();
     }
   }
 
   function resize() {
-    var w = canvas.clientWidth;
-    var h = canvas.clientHeight;
-    if (!w || !h) return;
-    W = w;
-    H = h;
-    // a low-res buffer: the fragments are meant to read as soft, not crisp
-    scale = Math.min(1, window.devicePixelRatio || 1, 1600 / W);
-    canvas.width = Math.round(W * scale);
-    canvas.height = Math.round(H * scale);
-    widths = {};
-    measureZone();
-    seed();
-    draw(0, performance.now());
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+    if (!W || !H) return;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    measure();
+    draw(performance.now(), true);
   }
 
-  // 0 (clear) .. 1 (fully dissolved into grain)
-  function dissolve(x, y) {
-    var dx = (x - zone.x) / zone.rx;
-    var dy = (y - zone.y) / zone.ry;
-    // a squarish ellipse, so the corners of the copy block are covered too
-    var e = Math.sqrt(dx * dx * dx * dx + dy * dy * dy * dy);
-    var d = Math.min(1, Math.max(0, (1.3 - e) / 0.8));
-    if (pointer.k > 0.01) {
-      var px = x - pointer.x;
-      var py = y - pointer.y;
-      var r = Math.sqrt(px * px + py * py);
-      var R = 130;
-      if (r < R) d = Math.max(d, Math.pow(1 - r / R, 0.7) * pointer.k);
-    }
-    return d;
-  }
-
-  // softens fragments toward the nav and the bottom edge
-  function edge(y) {
-    var top = Math.min(1, Math.max(0, (y - 78) / 70));
-    var bottom = Math.min(1, Math.max(0, (H - y) / (H * 0.22)));
-    return top * bottom;
-  }
-
-  function grainCloud(cx, cy, rx, ry, count, alpha) {
-    for (var i = 0; i < count; i++) {
-      var ang = Math.random() * Math.PI * 2;
-      var rad = Math.sqrt(Math.random());
-      var x = cx + Math.cos(ang) * rad * rx;
-      var y = cy + Math.sin(ang) * rad * ry;
-      ctx.globalAlpha = alpha * (1 - rad) * Math.random();
-      ctx.fillStyle = Math.random() < 0.35 ? "rgb(" + LAV + ")" : "rgb(" + GREY + ")";
-      ctx.fillRect(x, y, 1.1, 1.1);
+  function begin(next, now) {
+    from = shown.join("");
+    to = next;
+    phase = to === sp ? "fold" : "decode";
+    phaseAt = now;
+    resolveAt = [];
+    for (var i = 0; i < line.len; i++) {
+      // a left-to-right sweep with some jitter, like a cipher settling
+      resolveAt.push(160 + (i / line.len) * (DECODE - 520) + Math.random() * 300);
     }
   }
 
-  function draw(dt, now) {
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    ctx.clearRect(0, 0, W, H);
+  function step(now) {
+    var t = now - phaseAt;
+    if (phase === "idle" && t > IDLE) {
+      target = taprootOutput(line.len);
+      begin(target, now);
+    } else if (phase === "hold" && t > HOLD) {
+      begin(sp, now);
+    } else if (phase === "decode" || phase === "fold") {
+      var done = true;
+      for (var i = 0; i < line.len; i++) {
+        if (to[i] === "…") {
+          shown[i] = "…";
+          continue;
+        }
+        if (t >= resolveAt[i]) shown[i] = to[i];
+        else {
+          done = false;
+          if (t > resolveAt[i] * 0.25) shown[i] = pick(NOISE);
+        }
+      }
+      if (done && t > DECODE) {
+        phase = phase === "decode" ? "hold" : "idle";
+        phaseAt = now;
+      }
+    }
+  }
+
+  // 0..1: how strongly the idle shimmer wave touches character i
+  function wave(i, now) {
+    if (phase !== "idle") return 0;
+    var t = now - phaseAt - 700;
+    var travel = 2600;
+    if (t < 0 || t > travel) return 0;
+    var head = (t / travel) * (line.len + 10) - 5;
+    var d = Math.abs(i - head);
+    return d < 4 ? 1 - d / 4 : 0;
+  }
+
+  function draw(now, force) {
+    var t = now - phaseAt;
+    var active = phase === "decode" || phase === "fold" || (phase === "idle" && t > 600 && t < 3500);
+    if (!active && !force && !line.dirty) return;
+    line.dirty = active;
+
+    var top = line.y - line.size;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (force) ctx.clearRect(0, 0, W, H);
+    else ctx.clearRect(0, top - 4, W, line.size * 2 + 8);
+    ctx.font = "400 " + line.size.toFixed(1) + "px " + FONT;
     ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
 
-    if (dt && now - flashAt > 2600) {
-      flashAt = now;
-      var lit = frags[(Math.random() * frags.length) | 0];
-      if (lit && dissolve(lit.x + lit.chars.length * lit.cw * 0.5, lit.y) < 0.05) lit.flash = 1;
+    var output = phase === "hold" || phase === "decode";
+    for (var i = 0; i < line.len; i++) {
+      var ch = shown[i];
+      if (!ch) continue;
+      var x = line.x + i * line.cw + line.cw / 2;
+      var w = wave(i, now);
+      var settling = (phase === "decode" || phase === "fold") && ch !== to[i];
+      var alpha;
+      var rgb;
+      if (settling) {
+        alpha = 0.3;
+        rgb = "139,108,255";
+      } else if (w > 0) {
+        if (Math.random() < w * 0.55) ch = pick(NOISE);
+        alpha = 0.13 + w * 0.13;
+        rgb = "196,181,253";
+      } else {
+        alpha = output ? 0.22 : 0.13;
+        rgb = output ? "196,181,253" : "220,214,245";
+      }
+      ctx.fillStyle = "rgba(" + rgb + "," + (alpha * line.dim).toFixed(3) + ")";
+      ctx.fillText(ch, x, line.y);
     }
-
-    var font = 0;
-    for (var i = 0; i < frags.length; i++) {
-      var f = frags[i];
-      var len = f.chars.length;
-      var width = len * f.cw;
-      f.x += f.v * dt;
-      if (f.x + width < -20) {
-        var p = phrase();
-        f.x = W + rnd(10, 120);
-        f.chars = p.text.split("");
-        f.set = p.set;
-        f.lock = p.lock;
-        len = f.chars.length;
-        width = len * f.cw;
-      }
-      if (f.x > W + 140) continue;
-      if (dt && Math.random() < dt * 1.6) {
-        var at = f.lock + ((Math.random() * (len - f.lock)) | 0);
-        if (f.chars[at] !== " " && f.chars[at] !== "…") f.chars[at] = f.set[(Math.random() * f.set.length) | 0];
-      }
-      if (f.flash > 0) f.flash = Math.max(0, f.flash - dt * 0.45);
-
-      var y = f.y + Math.sin(now * 0.0004 + f.bob) * 2.5;
-      var e = edge(y);
-      if (e <= 0) continue;
-      if (font !== f.size) {
-        ctx.font = f.size + "px " + FONT;
-        font = f.size;
-      }
-      var glow = f.flash > 0 ? Math.sin(f.flash * Math.PI) : 0;
-      var rgb = f.tint || glow > 0 ? LAV : GREY;
-      var base = (f.a + glow * 0.45) * e;
-      ctx.fillStyle = "rgb(" + rgb + ")";
-
-      var d0 = dissolve(f.x, y);
-      var d1 = dissolve(f.x + width / 2, y);
-      var d2 = dissolve(f.x + width, y);
-      if (d0 < 0.02 && d1 < 0.02 && d2 < 0.02) {
-        ctx.globalAlpha = base;
-        ctx.fillText(f.chars.join(""), f.x, y);
-        continue;
-      }
-      for (var c = 0; c < len; c++) {
-        var ch = f.chars[c];
-        if (ch === " ") continue;
-        var cx = f.x + c * f.cw;
-        var d = dissolve(cx + f.cw / 2, y);
-        var a = base * Math.pow(1 - d, 1.6);
-        if (a > 0.008) {
-          ctx.globalAlpha = a;
-          ctx.fillText(ch, cx, y);
-        }
-        // characters on the way out shed a few specks of grain
-        if (d > 0.08 && d < 0.92 && Math.random() < d * 1.4) {
-          var spread = 0.6 + d * 2.2;
-          ctx.globalAlpha = base * (0.35 + Math.random() * 0.4) * (1 - d * 0.5);
-          ctx.fillRect(cx + f.cw / 2 + (Math.random() - 0.5) * f.cw * spread, y + (Math.random() - 0.5) * f.size * spread, 1, 1);
-        }
-      }
-    }
-
-    // the dissolved remains: a faint field of grain behind the headline
-    grainCloud(zone.x, zone.y, zone.rx * 1.05, zone.ry, W < 600 ? 110 : 240, 0.14);
-    if (pointer.k > 0.01) grainCloud(pointer.x, pointer.y, 120, 120, 60, 0.32 * pointer.k);
-    ctx.globalAlpha = 1;
   }
 
   function frame(now) {
@@ -254,12 +194,9 @@
     if (!running) return;
     raf = requestAnimationFrame(frame);
     if (now - last < 1000 / FPS - 2) return;
-    var dt = Math.min(0.1, (now - last) / 1000);
     last = now;
-    pointer.k += ((pointer.on ? 1 : 0) - pointer.k) * Math.min(1, dt * 4);
-    pointer.x += (pointer.tx - pointer.x) * Math.min(1, dt * 9);
-    pointer.y += (pointer.ty - pointer.y) * Math.min(1, dt * 9);
-    draw(dt, now);
+    step(now);
+    draw(now, false);
   }
 
   function sync() {
@@ -267,7 +204,7 @@
     if (go === running) return;
     running = go;
     if (go) {
-      last = performance.now();
+      last = 0;
       if (!raf) raf = requestAnimationFrame(frame);
     } else if (raf) {
       cancelAnimationFrame(raf);
@@ -275,13 +212,12 @@
     }
   }
 
-  // In the pinned story the veil belongs to the hero: it thins out as the
-  // headline leaves and is gone before the chapters settle in.
+  // In the pinned story the address belongs to the hero and leaves with it.
   function onScroll() {
     var next = 1;
     if (root.classList.contains("has-stage")) {
       var vh = window.innerHeight;
-      var t = (window.scrollY - vh * 0.02) / (vh * 0.22);
+      var t = (window.scrollY - vh * 0.02) / (vh * 0.16);
       next = 1 - Math.min(1, Math.max(0, t));
     }
     if (Math.abs(next - fade) > 0.004 || (next === 0) !== (fade === 0)) {
@@ -292,7 +228,6 @@
   }
 
   function start() {
-    if (reduce.matches) return;
     resize();
     canvas.classList.add("is-on");
     onScroll();
@@ -300,25 +235,27 @@
 
     window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("visibilitychange", sync);
-    if (reduce.addEventListener) reduce.addEventListener("change", sync);
+    if (reduce.addEventListener) {
+      reduce.addEventListener("change", function () {
+        shown = sp.split("");
+        phase = "idle";
+        draw(performance.now(), true);
+        sync();
+      });
+    }
 
     var timer = 0;
-    var lastW = window.innerWidth;
     window.addEventListener("resize", function () {
       clearTimeout(timer);
-      timer = setTimeout(function () {
-        // mobile toolbars change the height on scroll; only reseed on real changes
-        if (Math.abs(window.innerWidth - lastW) < 2 && Math.abs(canvas.clientHeight - H) < 120) {
-          measureZone();
-          return;
-        }
-        lastW = window.innerWidth;
-        resize();
-      }, 160);
+      timer = setTimeout(resize, 160);
     });
     // the headline settles after the intro and once the story is laid out
-    setTimeout(measureZone, 1800);
-    window.addEventListener("load", function () { setTimeout(measureZone, 300); });
+    var settle = function () {
+      measure();
+      draw(performance.now(), true);
+    };
+    setTimeout(settle, 1800);
+    window.addEventListener("load", function () { setTimeout(settle, 300); });
 
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
@@ -326,22 +263,8 @@
         sync();
       }).observe(canvas.parentElement);
     }
-
-    if (fine.matches) {
-      window.addEventListener("pointermove", function (e) {
-        var r = canvas.getBoundingClientRect();
-        pointer.tx = e.clientX - r.left;
-        pointer.ty = e.clientY - r.top;
-        if (!pointer.on) {
-          pointer.x = pointer.tx;
-          pointer.y = pointer.ty;
-        }
-        pointer.on = true;
-      }, { passive: true });
-      document.documentElement.addEventListener("pointerleave", function () { pointer.on = false; });
-    }
   }
 
-  var ready = document.fonts && document.fonts.load ? document.fonts.load("12px " + FONT) : Promise.resolve();
+  var ready = document.fonts && document.fonts.load ? document.fonts.load("14px " + FONT) : Promise.resolve();
   Promise.race([ready, new Promise(function (r) { setTimeout(r, 1200); })]).then(start, start);
 })();

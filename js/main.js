@@ -127,7 +127,9 @@
     if (target === slotW) return;
     slotW = target;
     nav.style.setProperty("--slot", slotW + "px");
-    var pw = geo.padL + geo.markW + slotW + geo.gap + geo.rowW + geo.gap + geo.ctaW + geo.padR;
+    // the links stay centred, so the pill grows evenly on both sides
+    var side = Math.max(geo.padL + geo.markW + slotW + geo.gap, geo.gap + geo.ctaW + geo.padR);
+    var pw = geo.rowW + side * 2;
     var left = (geo.navW - pw) / 2;
     nav.style.setProperty("--pw", pw + "px");
     nav.style.setProperty("--bx", Math.max(0, left + geo.padL - geo.brandL) + "px");
@@ -181,7 +183,6 @@
         var nameW = Math.ceil(name.getBoundingClientRect().width) + 1;
         var rowW = row.offsetWidth;
         var ctaW = cta.offsetWidth;
-        var fixed = 18 + 36 + 26 + rowW + 26 + ctaW + 7;
         geo = {
           navW: navW,
           padL: 18,
@@ -193,7 +194,7 @@
           ctaW: ctaW,
           brandL: brand.offsetLeft,
           endR: end.offsetLeft + end.offsetWidth,
-          maxSlot: Math.max(nameW, Math.min(170, navW - fixed - 24)),
+          maxSlot: Math.max(nameW, Math.min(170, (navW - rowW) / 2 - 12 - 18 - 36 - 26)),
         };
       }
     }

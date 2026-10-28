@@ -174,6 +174,8 @@ function buildStory() {
   const heroTitle = heroCopy.querySelector(".hero__title");
   const heroItems = Array.from(heroCopy.querySelectorAll("[data-hero-item]"));
   tl.fromTo(heroItems, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -30, duration: CHAPTERS[0].enter - HERO_EXIT, ease: "power1.in" }, HERO_EXIT);
+  const strip = story.querySelector("[data-standards]");
+  if (strip) tl.fromTo(strip, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: 24, duration: CHAPTERS[0].enter - HERO_EXIT, ease: "power1.in" }, HERO_EXIT);
 
   const blocks = chapters.map((chapter) => Array.from(chapter.querySelectorAll(".chapter__lead, .chapter__aside")));
   chapters.forEach((chapter, i) => {
@@ -224,7 +226,7 @@ function rebuildStory() {
   const p = storyTrigger ? storyTrigger.progress : 0;
   if (storyTrigger) storyTrigger.kill(true);
   if (storyTimeline) storyTimeline.kill();
-  gsap.set(story.querySelectorAll("[data-chapter], .chapter__lead, .chapter__aside, .chapters__progress, .hero__title, [data-hero-item]"), { clearProps: "all" });
+  gsap.set(story.querySelectorAll("[data-chapter], .chapter__lead, .chapter__aside, .chapters__progress, .hero__title, [data-hero-item], [data-standards]"), { clearProps: "all" });
   buildStory();
   ScrollTrigger.refresh();
   if (p > 0 && storyTrigger) window.scrollTo(0, storyTrigger.start + p * (storyTrigger.end - storyTrigger.start));
@@ -279,7 +281,7 @@ function dropStage() {
     const title = c.querySelector(".chapter__title");
     if (title) unsplit(title);
   });
-  gsap.set(story.querySelectorAll(".hero__copy, .hero__title, [data-hero-item], [data-chapter], .chapter__lead, .chapter__aside, .chapter__lead > *, .chapter__aside > *, .chapters__progress"), { clearProps: "all" });
+  gsap.set(story.querySelectorAll(".hero__copy, .hero__title, [data-hero-item], [data-standards], [data-chapter], .chapter__lead, .chapter__aside, .chapter__lead > *, .chapter__aside > *, .chapters__progress"), { clearProps: "all" });
   ScrollTrigger.refresh();
 }
 
@@ -301,7 +303,7 @@ window.addEventListener("pagehide", (e) => {
    ============================================================ */
 function intro() {
   const lines = story.querySelectorAll("[data-hero-line] .line__inner");
-  const items = story.querySelectorAll("[data-hero-item]");
+  const items = story.querySelectorAll("[data-hero-item], [data-standards]");
   const poster = story.querySelector("[data-poster] .poster__device");
   root.classList.remove("intro");
   const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
@@ -578,7 +580,8 @@ function watch(el, onIn, onOut, threshold = 0.3) {
 function illustrations() {
   document.querySelectorAll('[data-anim="once"], [data-anim="compare"]').forEach((el) => {
     if (!motion) return el.classList.add("is-played");
-    watch(el, () => el.classList.add("is-played"), null, 0.35);
+    // illustration cards are tall on phones: reveal as soon as a slice shows
+    watch(el, () => el.classList.add("is-played"), null, el.classList.contains("ill") ? 0.12 : 0.35);
     if (el.matches('[data-anim="compare"]')) {
       el.querySelectorAll("li, tbody tr").forEach((row, i) => {
         row.style.transitionDelay = `${0.12 + i * 0.07}s`;
@@ -606,6 +609,7 @@ function loop(el, run) {
   let on = false;
   const at = (ms, fn) => timers.push(setTimeout(() => on && fn(), ms));
   const start = () => {
+    el.classList.add("is-played");
     if (on) return;
     on = true;
     el.classList.add("is-running");
@@ -759,6 +763,136 @@ function features() {
   }
 }
 
+/* How it works: each step's illustration keeps playing while on screen */
+function howLoops() {
+  if (!motion) return;
+
+  const pub = document.querySelector('[data-loop="publish"]');
+  if (pub) {
+    const l = loop(pub, (at) => {
+      pub.dataset.phase = "0";
+      at(500, () => (pub.dataset.phase = "1"));
+      at(1300, () => (pub.dataset.phase = "2"));
+      at(2100, () => (pub.dataset.phase = "3"));
+      at(2900, () => (pub.dataset.phase = "4"));
+      at(3300, () => (pub.dataset.phase = "5"));
+      at(5600, () => l.again());
+    });
+  }
+
+  const ecdh = document.querySelector('[data-loop="ecdh"]');
+  if (ecdh) {
+    const addr = ecdh.querySelector("[data-addr]");
+    const trail = Array.from(ecdh.querySelectorAll("[data-trail] i"));
+    const outs = ["bc1p…48cd", "bc1p…5bf4", "bc1p…dc43", "bc1p…a9f3"];
+    let n = 1;
+    const l = loop(ecdh, (at) => {
+      ecdh.dataset.phase = "0";
+      at(300, () => (ecdh.dataset.phase = "1"));
+      at(1300, () => (ecdh.dataset.phase = "2"));
+      at(2100, () => {
+        ecdh.dataset.phase = "3";
+        addr.textContent = outs[n % outs.length];
+        if (n % trail.length === 0) trail.forEach((p) => p.classList.remove("is-lit"));
+        const p = trail[n % trail.length];
+        p.classList.add("is-lit", "is-new");
+        setTimeout(() => p.classList.remove("is-new"), 600);
+        n++;
+      });
+      at(4600, () => l.again());
+    });
+  }
+
+  const scan = document.querySelector('[data-loop="lscan"]');
+  if (scan) {
+    const rows = Array.from(scan.querySelectorAll(".lscan__device .pucks"));
+    const sweep = scan.querySelector("[data-sweep]");
+    let cycle = 0;
+    const l = loop(scan, (at) => {
+      rows.forEach((row) => {
+        row.classList.remove("is-scan");
+        row.querySelectorAll("i").forEach((p) => p.classList.remove("own", "is-hit"));
+      });
+      // two of the rows hold an output that's yours, somewhere new each time
+      const hits = [(cycle * 2 + 1) % rows.length, (cycle * 2 + 3) % rows.length];
+      hits.forEach((r, k) => rows[r].querySelectorAll("i")[(cycle * 3 + k * 2 + 1) % 6].classList.add("own"));
+      sweep.style.setProperty("--row", "0");
+      at(200, () => scan.classList.add("is-sweeping"));
+      rows.forEach((row, i) => {
+        at(300 + i * 520, () => {
+          sweep.style.setProperty("--row", String(i));
+          rows.forEach((r) => r.classList.toggle("is-scan", r === row));
+          const own = row.querySelector("i.own");
+          if (own) setTimeout(() => own.classList.add("is-hit"), 260);
+        });
+      });
+      const end = 300 + rows.length * 520;
+      at(end, () => {
+        rows.forEach((r) => r.classList.remove("is-scan"));
+        scan.classList.remove("is-sweeping");
+      });
+      at(end + 1800, () => {
+        cycle++;
+        l.again();
+      });
+    });
+  }
+
+  const land = document.querySelector('[data-loop="land"]');
+  if (land) {
+    const box = land.querySelector("[data-land]");
+    const cells = Array.from(box.querySelectorAll(".land__grid i"));
+    const tag = box.querySelector("[data-tag]");
+    const fly = box.querySelector("[data-fly]");
+    const pubEl = land.querySelector(".nolink__pub");
+    const outs = ["bc1p…48cd", "bc1p…5bf4", "bc1p…dc43"];
+    const order = [12, 4, 29, 17, 33, 8, 24, 1, 21];
+    let n = 0;
+    const centre = (el) => {
+      const a = el.getBoundingClientRect();
+      const b = box.getBoundingClientRect();
+      return { x: a.left - b.left + a.width / 2, y: a.top - b.top + a.height / 2 };
+    };
+    const l = loop(land, (at) => {
+      if (n % 3 === 0) cells.forEach((c) => c.classList.remove("is-own", "is-lit"));
+      const cell = cells[order[n % order.length]];
+      at(250, () => {
+        const a = centre(pubEl);
+        const b = centre(cell);
+        if (fly.animate) {
+          fly.animate(
+            [
+              { transform: `translate(${a.x}px, ${a.y}px) scale(0.4)`, opacity: 0 },
+              { transform: `translate(${a.x}px, ${a.y + 10}px) scale(1)`, opacity: 1, offset: 0.15 },
+              { transform: `translate(${b.x}px, ${b.y}px) scale(0.8)`, opacity: 1, offset: 0.9 },
+              { transform: `translate(${b.x}px, ${b.y}px) scale(0.3)`, opacity: 0 },
+            ],
+            { duration: 1000, easing: "cubic-bezier(0.65, 0, 0.35, 1)" }
+          );
+        }
+      });
+      at(1200, () => {
+        cells.forEach((c) => c.classList.contains("is-lit") && c.classList.replace("is-lit", "is-own"));
+        cell.classList.add("is-lit");
+        const b = centre(cell);
+        tag.textContent = outs[n % outs.length];
+        tag.style.setProperty("--tx", `${b.x}px`);
+        tag.style.setProperty("--ty", `${b.y}px`);
+        tag.classList.add("is-on");
+        land.classList.add("is-ping");
+      });
+      at(2900, () => {
+        tag.classList.remove("is-on");
+        land.classList.remove("is-ping");
+      });
+      at(3500, () => {
+        n++;
+        l.again();
+      });
+    });
+  }
+}
+
 /* Light that follows the pointer along a card's edge, and inside controls. */
 function glow() {
   if (!finePointer.matches) return;
@@ -789,6 +923,7 @@ function fillMarquee(strip, speed) {
     const copy = group.cloneNode(true);
     copy.setAttribute("aria-hidden", "true");
     copy.setAttribute("data-clone", "");
+    copy.querySelectorAll("a, button").forEach((el) => (el.tabIndex = -1));
     track.appendChild(copy);
   }
   strip.style.setProperty("--dur", `${((gw * per) / speed).toFixed(2)}s`);
@@ -800,51 +935,24 @@ function idleOffscreen(strip) {
   watch(strip, () => strip.classList.remove("is-off"), () => strip.classList.add("is-off"), 0);
 }
 
-// The threat model: one capsule per item, spread over drifting rows.
-const THREAT_ROWS = {
-  wide: [["y0", "n0", "y1", "n1"], ["n2", "y2", "n3"], ["y3", "n4", "y4"], ["n3", "y1", "n2", "y0"]],
-  narrow: [["y0", "n0", "y1", "n1"], ["n2", "y2", "n3", "y3"], ["n4", "y4", "n0", "y2"]],
-};
-const ROW_SPEED = [26, 32, 24, 30];
-
 function marquees() {
   if (!motion) return;
   const standards = document.querySelector(".standards__marquee");
   const box = document.querySelector("[data-threats]");
-  const rowsEl = box && box.querySelector("[data-threat-rows]");
-  const yes = box ? Array.from(box.querySelectorAll(".threats__grid .tcap--yes")) : [];
-  const no = box ? Array.from(box.querySelectorAll(".threats__grid .tcap--no")) : [];
-  const narrow = window.matchMedia("(max-width: 640px)");
+  const lines = box ? Array.from(box.querySelectorAll("[data-tline]")) : [];
 
-  const buildThreats = () => {
-    if (!rowsEl || !yes.length) return;
-    rowsEl.innerHTML = "";
-    box.classList.add("is-live");
-    const plan = narrow.matches ? THREAT_ROWS.narrow : THREAT_ROWS.wide;
-    plan.forEach((keys, r) => {
-      const strip = document.createElement("div");
-      strip.className = "marquee" + (r % 2 ? " is-reverse" : "");
-      const track = document.createElement("div");
-      track.className = "marquee__track";
-      const group = document.createElement("ul");
-      group.className = "marquee__group";
-      keys.forEach((k) => {
-        const src = (k[0] === "y" ? yes : no)[Number(k.slice(1))];
-        if (src) group.appendChild(src.cloneNode(true));
-      });
-      track.appendChild(group);
-      strip.appendChild(track);
-      rowsEl.appendChild(strip);
-      fillMarquee(strip, ROW_SPEED[r % ROW_SPEED.length]);
-      idleOffscreen(strip);
-    });
+  const fill = () => {
+    if (standards) fillMarquee(standards, 34);
+    lines.forEach((strip) => fillMarquee(strip, 22));
   };
-
-  if (standards) {
-    fillMarquee(standards, 34);
-    idleOffscreen(standards);
-  }
-  buildThreats();
+  if (standards) idleOffscreen(standards);
+  lines.forEach((strip) => {
+    if (strip.closest(".tline--no")) strip.classList.add("is-reverse");
+    idleOffscreen(strip);
+    noteOnHover(strip, strip.parentElement.querySelector("[data-tline-note]"));
+  });
+  fill();
+  if (box && lines.length) box.classList.add("is-live");
 
   let lastW = window.innerWidth;
   let timer = 0;
@@ -853,9 +961,45 @@ function marquees() {
     timer = setTimeout(() => {
       if (Math.abs(window.innerWidth - lastW) < 2) return;
       lastW = window.innerWidth;
-      if (standards) fillMarquee(standards, 34);
-      buildThreats();
+      fill();
     }, 200);
+  });
+}
+
+// The note for an item shows under its line on hover, focus or tap.
+function noteOnHover(strip, note) {
+  if (!note) return;
+  let current = null;
+  const show = (item) => {
+    if (current) current.classList.remove("is-on");
+    current = item;
+    strip.classList.toggle("is-held", !!item);
+    if (!item) {
+      note.classList.remove("is-on");
+      return;
+    }
+    item.classList.add("is-on");
+    note.textContent = item.getAttribute("data-note");
+    note.classList.add("is-on");
+  };
+  strip.addEventListener("pointerover", (e) => {
+    if (e.pointerType !== "mouse") return;
+    const item = e.target.closest(".titem");
+    if (item) show(item);
+  });
+  strip.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && show(null));
+  strip.addEventListener("click", (e) => {
+    const item = e.target.closest(".titem");
+    if (item) show(item === current ? null : item);
+  });
+  strip.addEventListener("focusin", (e) => {
+    const item = e.target.closest(".titem");
+    if (item) show(item);
+  });
+  strip.addEventListener("focusout", () => show(null));
+  // a tap anywhere else lets go, and the line moves on
+  document.addEventListener("pointerdown", (e) => {
+    if (current && !strip.contains(e.target)) show(null);
   });
 }
 
@@ -867,6 +1011,7 @@ function boot() {
   howItWorks();
   illustrations();
   features();
+  howLoops();
   glow();
   if (!gsap || !ScrollTrigger) {
     wordmark();

@@ -1,4 +1,4 @@
-import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP } from "./timeline.js";
+import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js";
 
 const root = document.documentElement;
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -154,21 +154,19 @@ function buildStory() {
   // One chapter hands over to the next as a clean crossfade: the outgoing
   // copy dissolves upward and is gone before the incoming copy settles in,
   // so two headings never share the screen.
-  const handOff = ([outLead, outAside], [inLead, inAside], at) => {
+  const handOff = (out, inc, at) => {
     const w = SWAP;
     const once = { immediateRender: false };
-    const out = [outLead, outAside].filter(Boolean);
-    const inc = [inLead, inAside].filter(Boolean);
     tl.fromTo(out, { autoAlpha: 1, y: 0, filter: "blur(0px)" }, { autoAlpha: 0, y: -18, filter: "blur(6px)", duration: w * 0.42, ease: "power2.in", stagger: w * 0.04, ...once }, at);
     tl.fromTo(inc, { autoAlpha: 0, y: 18, filter: "blur(6px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: w * 0.46, ease: "power2.out", stagger: w * 0.06, ...once }, at + w * 0.48);
   };
 
   // The hero leaves the same way: headline out first, then chapter 1 in.
-  const push = (outEl, [inLead, inAside], at) => {
+  const push = (outEl, inc, at) => {
     const w = SWAP;
     const once = { immediateRender: false };
     tl.fromTo(outEl, { autoAlpha: 1, y: 0, filter: "blur(0px)" }, { autoAlpha: 0, y: -28, filter: "blur(6px)", duration: w * 0.45, ease: "power2.in", ...once }, at);
-    tl.fromTo([inLead, inAside].filter(Boolean), { autoAlpha: 0, y: 18, filter: "blur(6px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: w * 0.46, ease: "power2.out", stagger: w * 0.06, ...once }, at + w * 0.5);
+    tl.fromTo(inc, { autoAlpha: 0, y: 18, filter: "blur(6px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: w * 0.46, ease: "power2.out", stagger: w * 0.06, ...once }, at + w * 0.5);
   };
 
   const heroTitle = heroCopy.querySelector(".hero__title");
@@ -177,7 +175,7 @@ function buildStory() {
   const strip = story.querySelector("[data-standards]");
   if (strip) tl.fromTo(strip, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: 24, duration: CHAPTERS[0].enter - HERO_EXIT, ease: "power1.in" }, HERO_EXIT);
 
-  const blocks = chapters.map((chapter) => Array.from(chapter.querySelectorAll(".chapter__lead, .chapter__aside")));
+  const blocks = chapters.map((chapter) => Array.from(chapter.querySelectorAll(".chapter__lead, .chapter__aside, .chapter__caption")));
   chapters.forEach((chapter, i) => {
     const { enter, exit } = CHAPTERS[i];
     unsplit(chapter.querySelector(".chapter__title"));
@@ -185,7 +183,14 @@ function buildStory() {
     gsap.set(blocks[i], { autoAlpha: 0 });
     if (exit !== null) tl.set(chapter, { autoAlpha: 0 }, exit + SWAP);
   });
-  push(heroTitle, blocks[0], CHAPTERS[0].enter);
+  // chapter 1's caption sits by the phone, so it waits until the phone has
+  // finished its turn and faces front
+  const firstCaption = chapters[0].querySelector(".chapter__caption");
+  push(heroTitle, blocks[0].filter((el) => el !== firstCaption), CHAPTERS[0].enter);
+  if (firstCaption) {
+    gsap.set(firstCaption, { autoAlpha: 0 });
+    tl.fromTo(firstCaption, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.14, ease: "power2.out", immediateRender: false }, RISE[1] + 0.02);
+  }
   chapters.forEach((_, i) => {
     if (CHAPTERS[i].exit !== null) handOff(blocks[i], blocks[i + 1], CHAPTERS[i].exit);
   });
@@ -237,14 +242,14 @@ function rebuildStory() {
    ============================================================ */
 let stageApi = null;
 
-function initStage() {
+function initStage(downloadOnly = false) {
   const container = story.querySelector("[data-gl]");
   const frames = {
     hero: story.querySelector('[data-frame="hero"]'),
     chapter: story.querySelector('[data-frame="chapter"]'),
   };
   const labelLayer = story.querySelector("[data-labels]");
-  const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapters__progress"));
+  const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapter__caption, .chapters__progress"));
   const dlEl = document.querySelector("[data-gl-download]");
   const mobile = window.matchMedia("(max-width: 899px), (max-aspect-ratio: 6/5)").matches;
   import("./stage/stage.js")
@@ -253,12 +258,14 @@ function initStage() {
         story: { container, stage, frames, avoid, labelLayer, getProgress: () => progress.t },
         download: dlEl ? { container: dlEl } : null,
         mobile,
+        downloadOnly,
+        reduced: !motion,
       })
     )
     .then((api) => {
       stageApi = api;
       window.__shroudStage = api;
-      root.classList.add("is-3d");
+      if (!downloadOnly) root.classList.add("is-3d");
       if (dlEl) root.classList.add("has-dl3d");
       api.start();
       container.addEventListener("stage:lost", dropStage, { once: true });
@@ -348,17 +355,6 @@ function reveals() {
       scrollTrigger: { trigger: group, start: "top 88%", once: true },
     });
   });
-
-  const finale = document.querySelector(".finale__link");
-  if (finale) {
-    gsap.from(finale, { autoAlpha: 0, y: 80, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: ".finale", start: "top 80%", once: true } });
-    gsap.fromTo(".finale__mark", { rotate: -8, scale: 0.9 }, {
-      rotate: 8,
-      scale: 1.05,
-      ease: "none",
-      scrollTrigger: { trigger: ".finale", start: "top bottom", end: "bottom top", scrub: true },
-    });
-  }
 }
 
 /* ============================================================
@@ -406,10 +402,7 @@ function magnets() {
       kick();
     });
   };
-  document.querySelectorAll("[data-magnetic]").forEach((el) => {
-    const big = el.classList.contains("finale__link");
-    add(el, el, big ? 0.12 : 0.28, big ? 28 : 12);
-  });
+  document.querySelectorAll("[data-magnetic]").forEach((el) => add(el, el, 0.28, 12));
   document.querySelectorAll(".dl-row").forEach((row) => add(row, row.querySelector(".dl-row__arrow"), 0.14, 7));
   document.querySelectorAll(".acc__btn").forEach((btn) => add(btn, btn.querySelector(".acc__icon"), 0.1, 5));
 }
@@ -440,57 +433,18 @@ function interactions() {
 }
 
 /* ============================================================
-   Footer wordmark: rises out of the page edge, lit by the pointer
+   Footer sign-off: the logo mark, lit up as the page runs out
    ============================================================ */
-function wordmark() {
-  const mark = document.querySelector("[data-wordmark]");
+function signoff() {
+  const mark = document.querySelector("[data-signoff]");
   if (!mark) return;
-  const inner = mark.querySelector(".wordmark__inner");
-  const fills = Array.from(mark.querySelectorAll(".wordmark__fill"));
-  watch(mark, () => mark.classList.add("is-in"), () => mark.classList.remove("is-in"), 0.1);
-
-  if (motion && gsap && ScrollTrigger) {
-    inner.style.setProperty("--r", "0");
-    ScrollTrigger.create({
-      trigger: mark,
-      start: "top bottom",
-      end: "bottom bottom",
-      onUpdate: (self) => inner.style.setProperty("--r", self.progress.toFixed(4)),
-      onRefresh: (self) => inner.style.setProperty("--r", self.progress.toFixed(4)),
-    });
+  if (!motion || !gsap || !ScrollTrigger) {
+    mark.style.setProperty("--r", "1");
+    return;
   }
-
-  if (!finePointer.matches) return;
-  const footer = mark.closest("footer") || mark;
-  let level = 0;
-  let target = 0;
-  let px = 0;
-  let py = 0;
-  let raf = 0;
-  const paint = () => {
-    raf = 0;
-    level += (target - level) * 0.12;
-    fills.forEach((el) => {
-      const r = el.getBoundingClientRect();
-      el.style.setProperty("--gx", `${(px - r.left).toFixed(1)}px`);
-      el.style.setProperty("--gy", `${(py - r.top).toFixed(1)}px`);
-      el.style.setProperty("--ga", level.toFixed(3));
-    });
-    if (Math.abs(target - level) > 0.004) raf = requestAnimationFrame(paint);
-  };
-  const kick = () => raf || (raf = requestAnimationFrame(paint));
-  footer.addEventListener("pointermove", (e) => {
-    px = e.clientX;
-    py = e.clientY;
-    const r = inner.getBoundingClientRect();
-    const dy = Math.max(0, r.top - py, py - r.bottom);
-    target = Math.max(0, 1 - dy / 260);
-    kick();
-  });
-  footer.addEventListener("pointerleave", () => {
-    target = 0;
-    kick();
-  });
+  mark.style.setProperty("--r", "0");
+  const set = (self) => mark.style.setProperty("--r", self.progress.toFixed(4));
+  ScrollTrigger.create({ trigger: mark, start: "top bottom", end: "bottom bottom", onUpdate: set, onRefresh: set });
 }
 
 /* ============================================================
@@ -599,8 +553,6 @@ function illustrations() {
       0.2
     );
   });
-  const finale = document.querySelector(".finale");
-  if (finale) watch(finale, () => finale.classList.add("is-in"), () => finale.classList.remove("is-in"), 0.1);
 }
 
 /* A small scheduler: timers that pause with the card. */
@@ -938,22 +890,9 @@ function idleOffscreen(strip) {
 function marquees() {
   if (!motion) return;
   const standards = document.querySelector(".standards__marquee");
-  const box = document.querySelector("[data-threats]");
-  const lines = box ? Array.from(box.querySelectorAll("[data-tline]")) : [];
-
-  const fill = () => {
-    if (standards) fillMarquee(standards, 34);
-    lines.forEach((strip) => fillMarquee(strip, 22));
-  };
-  if (standards) idleOffscreen(standards);
-  lines.forEach((strip) => {
-    if (strip.closest(".tline--no")) strip.classList.add("is-reverse");
-    idleOffscreen(strip);
-    noteOnHover(strip, strip.parentElement.querySelector("[data-tline-note]"));
-  });
-  fill();
-  if (box && lines.length) box.classList.add("is-live");
-
+  if (!standards) return;
+  idleOffscreen(standards);
+  fillMarquee(standards, 34);
   let lastW = window.innerWidth;
   let timer = 0;
   window.addEventListener("resize", () => {
@@ -961,45 +900,46 @@ function marquees() {
     timer = setTimeout(() => {
       if (Math.abs(window.innerWidth - lastW) < 2) return;
       lastW = window.innerWidth;
-      fill();
+      fillMarquee(standards, 34);
     }, 200);
   });
 }
 
-// The note for an item shows under its line on hover, focus or tap.
-function noteOnHover(strip, note) {
-  if (!note) return;
-  let current = null;
-  const show = (item) => {
-    if (current) current.classList.remove("is-on");
-    current = item;
-    strip.classList.toggle("is-held", !!item);
-    if (!item) {
-      note.classList.remove("is-on");
-      return;
-    }
-    item.classList.add("is-on");
-    note.textContent = item.getAttribute("data-note");
-    note.classList.add("is-on");
+/* The threat model: rows reveal one by one down both columns; a row opens
+   its note on hover (pointer) or tap/click, and on keyboard focus. */
+function threats() {
+  const box = document.querySelector("[data-threats]");
+  if (!box) return;
+  const cols = Array.from(box.querySelectorAll(".tm__col"));
+  // interleave the columns so the reveal runs across and down together
+  cols.forEach((col, c) => {
+    col.querySelector(".tm__label").style.setProperty("--d", `${c * 0.08}s`);
+    col.querySelectorAll(".tm__item").forEach((item, i) => item.style.setProperty("--d", `${0.2 + i * 0.14 + c * 0.07}s`));
+  });
+  if (!motion) box.classList.add("is-played");
+  else watch(box, () => box.classList.add("is-played"), null, 0.15);
+
+  const set = (item, open) => {
+    item.classList.toggle("is-open", open);
+    item.querySelector(".tm__row").setAttribute("aria-expanded", open ? "true" : "false");
   };
-  strip.addEventListener("pointerover", (e) => {
-    if (e.pointerType !== "mouse") return;
-    const item = e.target.closest(".titem");
-    if (item) show(item);
-  });
-  strip.addEventListener("pointerleave", (e) => e.pointerType === "mouse" && show(null));
-  strip.addEventListener("click", (e) => {
-    const item = e.target.closest(".titem");
-    if (item) show(item === current ? null : item);
-  });
-  strip.addEventListener("focusin", (e) => {
-    const item = e.target.closest(".titem");
-    if (item) show(item);
-  });
-  strip.addEventListener("focusout", () => show(null));
-  // a tap anywhere else lets go, and the line moves on
-  document.addEventListener("pointerdown", (e) => {
-    if (current && !strip.contains(e.target)) show(null);
+  box.querySelectorAll(".tm__item").forEach((item) => {
+    const row = item.querySelector(".tm__row");
+    let hovered = false;
+    row.addEventListener("pointerenter", (e) => {
+      if (e.pointerType !== "mouse") return;
+      hovered = true;
+      set(item, true);
+    });
+    item.addEventListener("pointerleave", (e) => {
+      if (e.pointerType !== "mouse") return;
+      hovered = false;
+      set(item, false);
+    });
+    row.addEventListener("click", () => {
+      if (hovered) return;
+      set(item, !item.classList.contains("is-open"));
+    });
   });
 }
 
@@ -1008,19 +948,21 @@ function noteOnHover(strip, note) {
    ============================================================ */
 function boot() {
   marquees();
+  threats();
   howItWorks();
   illustrations();
   features();
   howLoops();
   glow();
   if (!gsap || !ScrollTrigger) {
-    wordmark();
+    signoff();
     return;
   }
-  wordmark();
+  signoff();
+  if (!useStage && !motion && webglAvailable() && document.querySelector("[data-gl-download]")) whenIdle(() => initStage(true));
   if (useStage) {
     buildStory();
-    whenIdle(initStage);
+    whenIdle(() => initStage());
     let lastW = window.innerWidth;
     let timer = 0;
     window.addEventListener("resize", () => {

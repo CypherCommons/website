@@ -49,14 +49,37 @@ const GRID = { cols: 27, rows: 13, gap: 0.44, x0: -5.72, z0: 2.6 };
 const CLEAR = 0.9; // open floor under the phone
 const SWAY = { amp: 0.05, period: 10.5 }; // a faint idle drift; scrolling does the real turning
 
-// Scroll-linked motion: a few degrees of yaw and tilt that follow the story
-// position, so the phone visibly answers the scroll.
-const SCROLL_YAW = 0.13; // ~7.5 degrees
-const SCROLL_TILT = 0.035; // ~2 degrees
-// At each chapter change the phone makes a short turn; where the screen
-// changes too, its cross-fade lands on the middle of the turn.
-const TURN = { amp: 0.17, width: 0.2 };
-const TURNS = [BEATS.toReceive[0] + 0.06, CHAPTERS[2].enter + 0.06, BEATS.toHome + 0.06];
+// Scroll-driven turning. Rising into the story the phone makes one full turn,
+// scrubbed to the scroll. After that it swings between "front" moments, and
+// each screen change happens at one of them, while it faces the reader.
+const SPIN = [RISE[0] + 0.04, RISE[1]];
+const SWING = 0.47; // ~27 degrees
+const FRONTS = [
+  RISE[1],
+  BEATS.sendPush[0] + 0.07,
+  BEATS.toReceive[0] + 0.06,
+  BEATS.toReceive[1] + 0.06,
+  CHAPTERS[2].enter + 0.06,
+  BEATS.toHome + 0.06,
+  BEATS.toSync + 0.06,
+  BEATS.backHome + 0.06,
+  6.4,
+];
+const MAX_TURN_SPEED = 9; // rad/s, so a fast flick can't whip the phone round
+function scrollYaw(t) {
+  if (t < SPIN[1]) return ss(SPIN[0], SPIN[1], t) * Math.PI * 2;
+  for (let i = 0; i < FRONTS.length - 1; i++) {
+    const a = FRONTS[i];
+    const b = FRONTS[i + 1];
+    if (t < b) {
+      // short gaps get a smaller swing, so quick screen changes stay calm
+      const amp = SWING * Math.min(1, (b - a) / 0.7);
+      // after the full turn, so the angle carries on without a jump
+      return Math.PI * 2 + Math.sin(((t - a) / (b - a)) * Math.PI) * amp * (i % 2 ? -1 : 1);
+    }
+  }
+  return Math.PI * 2;
+}
 
 // where each beat lands, per layout (nearest open slot is used)
 const TARGETS = {
@@ -122,7 +145,7 @@ function framePhone(camera, W, H, cy, ph, elev, target) {
   return d;
 }
 
-export async function createStage({ story, download, mobile }) {
+export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false }) {
   const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.outputColorSpace = SRGBColorSpace;
@@ -464,18 +487,15 @@ export async function createStage({ story, download, mobile }) {
     samplePose(t, pose);
     const sway = Math.sin((time * Math.PI * 2) / SWAY.period) * SWAY.amp * lerp(0.55, 1, ss(RISE[0], RISE[1], t));
     phoneRig.position.set(0, Math.sin(time * 0.55) * 0.02 - (1 - intro) * 0.5, 0);
-    const risen = ss(RISE[0], RISE[1], t);
-    let yaw = pose[0] + Math.sin(t * 1.9) * SCROLL_YAW * lerp(0.35, 1, risen);
-    const tilt = pose[1] + Math.sin(t * 2.6 + 0.6) * SCROLL_TILT * risen;
-    TURNS.forEach((c, i) => {
-      const u = win(t, c - TURN.width / 2, c + TURN.width / 2);
-      if (u > 0 && u < 1) yaw += Math.sin(u * Math.PI) * TURN.amp * (i % 2 ? -1 : 1);
-    });
-    // smoothed toward the scroll target, independent of frame rate
+    const yaw = pose[0] + scrollYaw(t);
+    const tilt = pose[1];
+    // smoothed toward the scroll target, with a speed cap, independent of frame rate
     const dt = Math.min(0.1, Math.max(0, time - turned.at));
     turned.at = time;
-    const k = 1 - Math.exp(-dt * 10);
-    turned.yaw += (yaw - turned.yaw) * k;
+    const k = 1 - Math.exp(-dt * 12);
+    const step = (yaw - turned.yaw) * k;
+    const cap = MAX_TURN_SPEED * dt;
+    turned.yaw += Math.max(-cap, Math.min(cap, step));
     turned.tilt += (tilt - turned.tilt) * k;
     phoneRig.rotation.set(turned.tilt + Math.sin(time * 0.37) * 0.012 + pointer.sy * 0.03, turned.yaw + sway + pointer.sx * 0.04, 0);
     phoneRig.updateMatrixWorld();
@@ -647,13 +667,113 @@ export async function createStage({ story, download, mobile }) {
     dl.W = Math.max(1, r.width);
     dl.H = Math.max(1, r.height);
   }
+  /* ---------- download phone: idles on its own, turns by hand ---------- */
+  const spin = { yaw: 0, pitch: 0, vy: 0, vp: 0, drag: false, idle: 1, lastX: 0, lastY: 0, lastT: 0, at: 0, moving: false };
+  const TAU = Math.PI * 2;
+  if (dl) {
+    const el = download.container;
+    let pid = null;
+    let startX = 0;
+    let startY = 0;
+    let decided = false;
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      pid = e.pointerId;
+      startX = spin.lastX = e.clientX;
+      startY = spin.lastY = e.clientY;
+      spin.lastT = performance.now();
+      // touch waits to see a horizontal swipe; vertical stays a page scroll
+      decided = e.pointerType === "mouse";
+      if (decided) {
+        spin.drag = true;
+        el.setPointerCapture(pid);
+        el.classList.add("is-dragging");
+      }
+      spin.vy = spin.vp = 0;
+      kickDownload();
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (e.pointerId !== pid) return;
+      if (!decided) {
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx < 6 && dy < 6) return;
+        decided = true;
+        if (dx <= dy) {
+          pid = null;
+          return;
+        }
+        spin.drag = true;
+        el.setPointerCapture(pid);
+      }
+      if (!spin.drag) return;
+      const now = performance.now();
+      const dt = Math.max(1, now - spin.lastT) / 1000;
+      const ry = (e.clientX - spin.lastX) * 0.011;
+      const rp = (e.clientY - spin.lastY) * 0.006;
+      spin.yaw += ry;
+      spin.pitch = Math.max(-0.45, Math.min(0.45, spin.pitch + rp));
+      // velocity, lightly smoothed, for the throw on release
+      spin.vy = spin.vy * 0.4 + (ry / dt) * 0.6;
+      spin.vp = spin.vp * 0.4 + (rp / dt) * 0.6;
+      spin.lastX = e.clientX;
+      spin.lastY = e.clientY;
+      spin.lastT = now;
+      kickDownload();
+    });
+    const end = (e) => {
+      if (e.pointerId !== pid) return;
+      pid = null;
+      el.classList.remove("is-dragging");
+      if (!spin.drag) return;
+      spin.drag = false;
+      // a pause before letting go means no throw
+      if (performance.now() - spin.lastT > 90) spin.vy = spin.vp = 0;
+      spin.vy = Math.max(-14, Math.min(14, spin.vy));
+      kickDownload();
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    el.addEventListener("lostpointercapture", end);
+  }
+
   function updateDownload(time) {
     const { rig, camera: cam, W: w, H: h } = dl;
-    // upright, fully inside the card, turned a few degrees with a gentle sway
     const ph = Math.min(h * 0.8, w * 1.25);
     framePhone(cam, w, h, h / 2, ph, 0.04, origin);
-    rig.rotation.set(0.02 + Math.sin(time * 0.4) * 0.01, -0.2 + Math.sin((time * Math.PI * 2) / 12) * 0.07, 0);
-    rig.position.y = Math.sin(time * 0.6) * 0.02;
+    const dt = Math.min(0.05, Math.max(0, time - spin.at));
+    spin.at = time;
+    let moving = false;
+    if (spin.drag) {
+      spin.idle = 0;
+      moving = true;
+    } else if (Math.abs(spin.vy) > 0.05 || Math.abs(spin.vp) > 0.05) {
+      // the throw: spins on, slowing down
+      spin.yaw += spin.vy * dt;
+      spin.pitch = Math.max(-0.45, Math.min(0.45, spin.pitch + spin.vp * dt));
+      const f = Math.exp(-dt * 2.6);
+      spin.vy *= f;
+      spin.vp *= f;
+      moving = true;
+    } else {
+      // then eases back to the nearest front-facing turn and picks up the idle
+      spin.vy = spin.vp = 0;
+      const front = Math.round(spin.yaw / TAU) * TAU;
+      const k = 1 - Math.exp(-dt * 3.2);
+      spin.yaw += (front - spin.yaw) * k;
+      spin.pitch += (0 - spin.pitch) * k;
+      if (Math.abs(front - spin.yaw) < 0.002 && Math.abs(spin.pitch) < 0.002) {
+        spin.yaw = 0;
+        spin.pitch = 0;
+      } else moving = true;
+      spin.idle = Math.min(1, spin.idle + dt * 0.5);
+    }
+    spin.moving = moving;
+    // idle: a slow turn either side of front, faded in after a drag
+    const idleYaw = reduced ? 0 : Math.sin((time * TAU) / 9) * 0.55 * spin.idle;
+    const idleBob = reduced ? 0 : Math.sin(time * 0.6) * 0.02;
+    rig.rotation.set(0.02 + spin.pitch, spin.yaw + idleYaw, 0);
+    rig.position.y = idleBob;
     dl.phone.screen.update(syncLoop(time));
   }
 
@@ -661,7 +781,7 @@ export async function createStage({ story, download, mobile }) {
      One renderer, moved to whichever view is on screen
      ========================================================= */
   let active = null;
-  let storyIn = true;
+  let storyIn = !downloadOnly;
   let downloadIn = false;
   let raf = 0;
   let running = false;
@@ -678,9 +798,12 @@ export async function createStage({ story, download, mobile }) {
     active = view;
     const host = view === "story" ? story.container : download.container;
     if (canvas.parentNode !== host) host.appendChild(canvas);
+    if (view === "download") measureDownload();
     const w = view === "story" ? W : dl.W;
     const h = view === "story" ? H : dl.H;
     renderer.setSize(w, h, false);
+    // never show the other view's last frame, even for one composite
+    renderer.clear();
     dirty = true;
   }
 
@@ -715,7 +838,8 @@ export async function createStage({ story, download, mobile }) {
       renderer.render(scene, camera);
       placeLabels();
     } else {
-      if (!dirty && now - lastRender < 32) return;
+      // every frame while it's being turned; ~30fps while idling
+      if (!dirty && !spin.drag && !spin.moving && (reduced || now - lastRender < 32)) return;
       dirty = false;
       lastRender = now;
       updateDownload(time);
@@ -734,6 +858,10 @@ export async function createStage({ story, download, mobile }) {
     cancelAnimationFrame(raf);
   }
   const sync = () => (!document.hidden && (storyIn || (downloadIn && dl)) ? start() : stop());
+  function kickDownload() {
+    dirty = true;
+    if (downloadIn) start();
+  }
 
   measure();
   measureDownload();
@@ -772,7 +900,7 @@ export async function createStage({ story, download, mobile }) {
     },
     { rootMargin: "120px 0px" }
   );
-  io.observe(story.stage);
+  if (!downloadOnly) io.observe(story.stage);
   if (dl) io.observe(download.container);
   document.addEventListener("visibilitychange", sync);
 

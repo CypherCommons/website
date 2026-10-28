@@ -1,7 +1,8 @@
 /* ============================================================
-   Hero background: one address, many outputs. A faint silent
-   payment address sits behind the headline; every few seconds it
-   decodes into a fresh taproot output, holds, then folds back.
+   Hero background: faint, scrambled silent payment addresses in the
+   empty space either side of the hero. A soft light follows the
+   pointer; where it passes, nearby addresses decode, then scramble
+   again once it has moved on.
    ============================================================ */
 (function () {
   "use strict";
@@ -12,191 +13,191 @@
   if (!ctx) return;
 
   var root = document.documentElement;
-  var copy = document.querySelector(".hero__copy");
-  var title = copy && copy.querySelector(".hero__title");
+  var stage = canvas.parentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
 
   var BECH = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
-  var NOISE = BECH + "0123456789abcdef#%*+=<>/";
+  var NOISE = BECH + "0123456789abcdef";
   var FONT = '"JetBrains Mono", ui-monospace, monospace';
-  // the donation address's opening and closing characters, carried through
-  var SP_HEAD = "sp1qqw6vgrtdf8jys4z0m";
-  var SP_FILL = "q8ks2y7cfa0dhv5xj3nmep4wlg9ru6tz";
-  var SP_TAIL = "9k3t";
-  var FPS = 24;
-
-  // phase lengths, ms
-  var IDLE = 4600;
-  var DECODE = 1400;
-  var HOLD = 2600;
+  // everything the text has to stay clear of
+  var KEEP_CLEAR = ".hero__title, .hero__sub, .hero__actions, [data-frame=\"hero\"], [data-standards]";
 
   var W = 0;
   var H = 0;
   var dpr = 1;
-  var line = { x: 0, y: 0, size: 14, cw: 9, len: 44, dim: 1 };
-  var sp = "";
-  var target = "";
-  var shown = [];
-  var from = "";
-  var to = "";
-  var phase = "idle";
-  var phaseAt = 0;
-  var resolveAt = [];
+  var size = 12;
+  var cw = 7.2;
+  var lines = [];
+  var light = { x: -999, y: -999, tx: -999, ty: -999, on: 0, target: 0 };
+  var R = 170;
   var running = false;
   var inView = true;
   var fade = 1;
   var last = 0;
   var raf = 0;
+  var lastMove = 0;
 
   function pick(set) { return set[(Math.random() * set.length) | 0]; }
 
-  // Both strings share one length and one ellipsis position, so the "…"
-  // stays put while everything around it changes.
-  function spAddress(len) {
-    var head = len - SP_TAIL.length - 1;
-    var body = (SP_HEAD + SP_FILL + SP_FILL).slice(0, head);
-    return body + "…" + SP_TAIL;
-  }
-  function taprootOutput(len) {
-    var head = len - 5;
-    var s = "bc1p";
-    while (s.length < head) s += pick(BECH);
-    s += "…";
-    for (var i = 0; i < 4; i++) s += pick(BECH);
-    return s;
-  }
-
-  function measure() {
-    var c = canvas.getBoundingClientRect();
-    var t = (title || copy || canvas).getBoundingClientRect();
-    var narrow = W < 700;
-    line.len = narrow ? 28 : 44;
-    var span = Math.min(W - 32, Math.max(260, t.width * (narrow ? 0.96 : 0.86)));
-    var below = W < 900;
-    line.size = Math.max(11, Math.min(below ? 16 : 22, span / (line.len * 0.6 * 1.14)));
-    // narrower screens: the headline wraps, so the line sits behind it, fainter
-    line.dim = below ? 0.6 : 1;
-    line.cw = line.size * 0.6 * 1.14;
-    line.x = (W - line.cw * line.len) / 2;
-    line.y = t.top - c.top + t.height * (below ? 0.5 : 0.52);
-    if (!title) line.y = H * 0.34;
-    var nextSp = spAddress(line.len);
-    if (nextSp !== sp) {
-      sp = nextSp;
-      shown = sp.split("");
-      phase = "idle";
-      phaseAt = performance.now();
+  function address(len) {
+    // sp1qq + body … tail, at whatever length the gap allows
+    if (len < 12) {
+      var s = "sp1qq";
+      while (s.length < len) s += pick(BECH);
+      return s;
     }
+    var tail = 4;
+    var head = len - tail - 1;
+    var out = "sp1qq";
+    while (out.length < head) out += pick(BECH);
+    out += "…";
+    for (var i = 0; i < tail; i++) out += pick(BECH);
+    return out;
   }
 
-  function resize() {
+  function blocked() {
+    var c = canvas.getBoundingClientRect();
+    var pad = 22;
+    var rects = [];
+    document.querySelectorAll(KEEP_CLEAR).forEach(function (el) {
+      if (!stage.contains(el)) return;
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      rects.push({ l: r.left - c.left - pad, r: r.right - c.left + pad, t: r.top - c.top - pad, b: r.bottom - c.top + pad });
+    });
+    // the nav, and the hero phone column when the 3D phone draws there
+    rects.push({ l: 0, r: W, t: 0, b: 84 });
+    return rects;
+  }
+
+  function layout() {
     W = canvas.clientWidth;
     H = canvas.clientHeight;
     if (!W || !H) return;
     dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
-    measure();
-    draw(performance.now(), true);
-  }
-
-  function begin(next, now) {
-    from = shown.join("");
-    to = next;
-    phase = to === sp ? "fold" : "decode";
-    phaseAt = now;
-    resolveAt = [];
-    for (var i = 0; i < line.len; i++) {
-      // a left-to-right sweep with some jitter, like a cipher settling
-      resolveAt.push(160 + (i / line.len) * (DECODE - 520) + Math.random() * 300);
-    }
-  }
-
-  function step(now) {
-    var t = now - phaseAt;
-    if (phase === "idle" && t > IDLE) {
-      target = taprootOutput(line.len);
-      begin(target, now);
-    } else if (phase === "hold" && t > HOLD) {
-      begin(sp, now);
-    } else if (phase === "decode" || phase === "fold") {
-      var done = true;
-      for (var i = 0; i < line.len; i++) {
-        if (to[i] === "…") {
-          shown[i] = "…";
-          continue;
+    size = W < 700 ? 10.5 : 12;
+    cw = size * 0.6;
+    R = W < 700 ? 120 : 170;
+    var rects = blocked();
+    var row = size * 2.3;
+    var minChars = W < 700 ? 9 : 14;
+    var margin = W < 700 ? 10 : 28;
+    lines = [];
+    for (var y = 100 + row / 2, k = 0; y < H - 24; y += row, k++) {
+      // free stretches along this row
+      var free = [[margin, W - margin]];
+      rects.forEach(function (b) {
+        if (y < b.t - size || y > b.b + size) return;
+        var next = [];
+        free.forEach(function (f) {
+          if (b.r <= f[0] || b.l >= f[1]) next.push(f);
+          else {
+            if (b.l > f[0]) next.push([f[0], b.l]);
+            if (b.r < f[1]) next.push([b.r, f[1]]);
+          }
+        });
+        free = next;
+      });
+      free.forEach(function (f) {
+        var room = Math.floor((f[1] - f[0]) / cw);
+        if (room < minChars) return;
+        // a little air, and not every row, so it reads as scattered
+        if ((k + (f[0] < W / 2 ? 0 : 1)) % 2) return;
+        var len = Math.min(room - 2, minChars + ((Math.random() * 12) | 0));
+        var span = len * cw;
+        var x = f[0] + Math.random() * Math.max(0, f[1] - f[0] - span);
+        var real = address(len);
+        var shown = [];
+        var reveal = [];
+        for (var i = 0; i < len; i++) {
+          shown.push(real[i] === "…" ? "…" : pick(NOISE));
+          reveal.push(0);
         }
-        if (t >= resolveAt[i]) shown[i] = to[i];
-        else {
-          done = false;
-          if (t > resolveAt[i] * 0.25) shown[i] = pick(NOISE);
-        }
-      }
-      if (done && t > DECODE) {
-        phase = phase === "decode" ? "hold" : "idle";
-        phaseAt = now;
-      }
+        lines.push({ x: x, y: y, real: real, shown: shown, reveal: reveal });
+      });
     }
+    draw(performance.now());
   }
 
-  // 0..1: how strongly the idle shimmer wave touches character i
-  function wave(i, now) {
-    if (phase !== "idle") return 0;
-    var t = now - phaseAt - 700;
-    var travel = 2600;
-    if (t < 0 || t > travel) return 0;
-    var head = (t / travel) * (line.len + 10) - 5;
-    var d = Math.abs(i - head);
-    return d < 4 ? 1 - d / 4 : 0;
-  }
-
-  function draw(now, force) {
-    var t = now - phaseAt;
-    var active = phase === "decode" || phase === "fold" || (phase === "idle" && t > 600 && t < 3500);
-    if (!active && !force && !line.dirty) return;
-    line.dirty = active;
-
-    var top = line.y - line.size;
+  function draw(now) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (force) ctx.clearRect(0, 0, W, H);
-    else ctx.clearRect(0, top - 4, W, line.size * 2 + 8);
-    ctx.font = "400 " + line.size.toFixed(1) + "px " + FONT;
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "center";
-
-    var output = phase === "hold" || phase === "decode";
-    for (var i = 0; i < line.len; i++) {
-      var ch = shown[i];
-      if (!ch) continue;
-      var x = line.x + i * line.cw + line.cw / 2;
-      var w = wave(i, now);
-      var settling = (phase === "decode" || phase === "fold") && ch !== to[i];
-      var alpha;
-      var rgb;
-      if (settling) {
-        alpha = 0.3;
-        rgb = "139,108,255";
-      } else if (w > 0) {
-        if (Math.random() < w * 0.55) ch = pick(NOISE);
-        alpha = 0.13 + w * 0.13;
-        rgb = "196,181,253";
-      } else {
-        alpha = output ? 0.22 : 0.13;
-        rgb = output ? "196,181,253" : "220,214,245";
-      }
-      ctx.fillStyle = "rgba(" + rgb + "," + (alpha * line.dim).toFixed(3) + ")";
-      ctx.fillText(ch, x, line.y);
+    ctx.clearRect(0, 0, W, H);
+    if (light.on > 0.01) {
+      var g = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, R * 1.6);
+      g.addColorStop(0, "rgba(139,108,255," + (0.16 * light.on).toFixed(3) + ")");
+      g.addColorStop(0.45, "rgba(124,58,237," + (0.06 * light.on).toFixed(3) + ")");
+      g.addColorStop(1, "rgba(124,58,237,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(light.x - R * 1.6, light.y - R * 1.6, R * 3.2, R * 3.2);
     }
+    ctx.font = "400 " + size + "px " + FONT;
+    ctx.textBaseline = "middle";
+    for (var n = 0; n < lines.length; n++) {
+      var L = lines[n];
+      for (var i = 0; i < L.shown.length; i++) {
+        var r = L.reveal[i];
+        var ch = r > 0.6 ? L.real[i] : L.shown[i];
+        var a = 0.09 + r * 0.5;
+        ctx.fillStyle = r > 0.6 ? "rgba(214,204,255," + a.toFixed(3) + ")" : "rgba(220,214,245," + a.toFixed(3) + ")";
+        ctx.fillText(ch, L.x + i * cw, L.y);
+      }
+    }
+  }
+
+  function step(now, dt) {
+    // the light: follows the pointer, or drifts on its own on touch screens
+    if (!fine.matches) {
+      var t = now / 1000;
+      var side = Math.sin(t * 0.09) > 0 ? 1 : 0;
+      light.tx = W * (side ? 0.86 : 0.14) + Math.sin(t * 0.21) * W * 0.06;
+      light.ty = H * 0.5 + Math.sin(t * 0.13) * H * 0.32;
+      light.target = 0.75;
+    } else if (now - lastMove > 2600) {
+      light.target = 0;
+    }
+    var k = 1 - Math.exp(-dt * (fine.matches ? 9 : 1.2));
+    light.x += (light.tx - light.x) * k;
+    light.y += (light.ty - light.y) * k;
+    light.on += (light.target - light.on) * (1 - Math.exp(-dt * 3));
+
+    var busy = light.on > 0.01;
+    for (var n = 0; n < lines.length; n++) {
+      var L = lines[n];
+      var dy = L.y - light.y;
+      var near = Math.abs(dy) < R;
+      for (var i = 0; i < L.shown.length; i++) {
+        var want = 0;
+        if (near && light.on > 0.01) {
+          var dx = L.x + i * cw - light.x;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          if (d < R) want = Math.min(1, (1 - d / R) * 1.6) * light.on;
+        }
+        var r = L.reveal[i];
+        // decode quickly, scramble back slowly
+        r += (want - r) * (want > r ? Math.min(1, dt * 8) : Math.min(1, dt * 1.6));
+        L.reveal[i] = r;
+        if (r > 0.004) busy = true;
+        // characters that are still scrambled keep shuffling, a few at a time
+        if (L.real[i] !== "…" && r < 0.6 && Math.random() < dt * (0.6 + r * 10)) L.shown[i] = pick(NOISE);
+      }
+    }
+    return busy;
   }
 
   function frame(now) {
     raf = 0;
     if (!running) return;
     raf = requestAnimationFrame(frame);
-    if (now - last < 1000 / FPS - 2) return;
+    var dt = (now - last) / 1000;
+    // full rate while the light is about, a slow shuffle otherwise
+    var busy = light.on > 0.01 || light.target > 0;
+    if (dt < (busy ? 1 / 30 : 1 / 8)) return;
     last = now;
-    step(now);
-    draw(now, false);
+    step(now, Math.min(0.1, dt));
+    draw(now);
   }
 
   function sync() {
@@ -204,7 +205,7 @@
     if (go === running) return;
     running = go;
     if (go) {
-      last = 0;
+      last = performance.now();
       if (!raf) raf = requestAnimationFrame(frame);
     } else if (raf) {
       cancelAnimationFrame(raf);
@@ -212,7 +213,7 @@
     }
   }
 
-  // In the pinned story the address belongs to the hero and leaves with it.
+  // In the pinned story the text belongs to the hero and leaves with it.
   function onScroll() {
     var next = 1;
     if (root.classList.contains("has-stage")) {
@@ -228,7 +229,7 @@
   }
 
   function start() {
-    resize();
+    layout();
     canvas.classList.add("is-on");
     onScroll();
     sync();
@@ -237,34 +238,54 @@
     document.addEventListener("visibilitychange", sync);
     if (reduce.addEventListener) {
       reduce.addEventListener("change", function () {
-        shown = sp.split("");
-        phase = "idle";
-        draw(performance.now(), true);
+        light.on = light.target = 0;
+        layout();
         sync();
       });
     }
+    window.addEventListener("pointermove", function (e) {
+      if (!fine.matches || reduce.matches) return;
+      var r = canvas.getBoundingClientRect();
+      var x = e.clientX - r.left;
+      var y = e.clientY - r.top;
+      if (y < 0 || y > r.height) {
+        light.target = 0;
+        return;
+      }
+      if (light.on < 0.02) {
+        light.x = x;
+        light.y = y;
+      }
+      light.tx = x;
+      light.ty = y;
+      light.target = 1;
+      lastMove = performance.now();
+    }, { passive: true });
+    document.documentElement.addEventListener("pointerleave", function () { light.target = 0; });
 
     var timer = 0;
+    var lastW = window.innerWidth;
     window.addEventListener("resize", function () {
       clearTimeout(timer);
-      timer = setTimeout(resize, 160);
+      timer = setTimeout(function () {
+        // mobile toolbars change the height on scroll; only relayout on real changes
+        if (Math.abs(window.innerWidth - lastW) < 2 && Math.abs(canvas.clientHeight - H) < 120) return;
+        lastW = window.innerWidth;
+        layout();
+      }, 160);
     });
-    // the headline settles after the intro and once the story is laid out
-    var settle = function () {
-      measure();
-      draw(performance.now(), true);
-    };
-    setTimeout(settle, 1800);
-    window.addEventListener("load", function () { setTimeout(settle, 300); });
+    // the hero settles after its intro and once the story is laid out
+    setTimeout(layout, 1800);
+    window.addEventListener("load", function () { setTimeout(layout, 300); });
 
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
         inView = entries[0].isIntersecting;
         sync();
-      }).observe(canvas.parentElement);
+      }).observe(stage);
     }
   }
 
-  var ready = document.fonts && document.fonts.load ? document.fonts.load("14px " + FONT) : Promise.resolve();
+  var ready = document.fonts && document.fonts.load ? document.fonts.load("12px " + FONT) : Promise.resolve();
   Promise.race([ready, new Promise(function (r) { setTimeout(r, 1200); })]).then(start, start);
 })();

@@ -312,6 +312,23 @@
     targets.forEach(function (t) { io.observe(t.el); });
   }
 
+  /* ---------- Roadmap line: runs from the first dot to the last ---------- */
+  var timeline = document.querySelector(".acc--timeline");
+  if (timeline) {
+    var placeLine = function () {
+      var heads = timeline.querySelectorAll(".acc__heading");
+      if (!heads.length) return;
+      var box = timeline.getBoundingClientRect();
+      var first = heads[0].getBoundingClientRect();
+      var last = heads[heads.length - 1].getBoundingClientRect();
+      timeline.style.setProperty("--line-top", Math.round(first.top - box.top + first.height / 2) + "px");
+      timeline.style.setProperty("--line-bottom", Math.round(box.bottom - last.top - last.height / 2) + "px");
+    };
+    placeLine();
+    if ("ResizeObserver" in window) new ResizeObserver(placeLine).observe(timeline);
+    window.addEventListener("load", placeLine);
+  }
+
   /* ---------- Accordions (roadmap + FAQ) ---------- */
   document.querySelectorAll("[data-accordion] .acc__btn").forEach(function (btn) {
     btn.addEventListener("click", function () {

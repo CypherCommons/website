@@ -630,15 +630,15 @@ code {
   .nav { display: flex; gap: 10px; padding: 0 6px 0 14px; }
   .nav__pill { width: 100%; }
   .nav__brand { margin-right: auto; min-width: 0; }
-  .nav__word { width: auto; min-width: 0; max-width: calc(100vw - 252px); }
-  .nav__cta--bar { flex: none; white-space: nowrap; }
+  .nav__word { width: auto; min-width: 0; max-width: calc(100vw - 150px); }
+  /* Get Started lives in the menu on small screens */
+  .nav__cta--bar { display: none; }
   .nav__ctx { font-size: 10.5px; letter-spacing: 0.1em; }
   .nav-wrap.is-scrolled .nav__brand,
   .nav-wrap.is-scrolled .nav__end,
   .nav-wrap.is-scrolled .nav > .nav__cta--bar { transform: none; }
   .nav__toggle { display: inline-flex; }
-  .nav__cta--bar { height: 38px; padding: 0 14px; font-size: 13.5px; }
-  .nav__cta--bar .icon { display: none; }
+
   .nav__menu {
     position: absolute;
     top: calc(100% + 10px);
@@ -3402,6 +3402,62 @@ thead .ctable__shroud::after {
 }
 @media (max-width: 899px), (max-aspect-ratio: 6/5) {
   .has-stage .hero__actions .btn--store { --btn-h: 52px; padding: 0 18px 0 16px; }
+}
+
+/* ---------- step 04: one address above, a field of outputs below, the
+   newly landed one as the focal point, then the verdict ---------- */
+.ill__cap span { white-space: nowrap; }
+.ill--links {
+  justify-content: center;
+  gap: 0;
+  padding: 30px 24px 24px;
+}
+.ill--links .nolink__pub {
+  gap: 8px;
+  padding: 7px 14px 7px 11px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  background: linear-gradient(180deg, rgba(139, 108, 255, 0.14), rgba(13, 13, 16, 0.9));
+}
+.ill--links .nolink__pub .icon { width: 14px; height: 14px; }
+/* a thin drop from the address into the field */
+.ill--links .land { margin-top: 18px; }
+.ill--links .land::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(196, 181, 253, 0.55), rgba(196, 181, 253, 0.08));
+}
+.ill--links .land__grid {
+  grid-template-columns: repeat(9, 22px);
+  gap: 14px 12px;
+  padding: 20px 22px;
+  border-radius: var(--r-card);
+  background: rgba(9, 9, 12, 0.7);
+}
+.ill--links .land__grid i { width: 22px; height: 12px; opacity: 0.8; }
+.ill--links .land__grid i.is-own { opacity: 1; }
+.ill--links .land__grid i.is-lit { opacity: 1; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 2.5px 0 #5b45b8, 0 0 0 4px rgba(139, 108, 255, 0.16), 0 0 22px rgba(139, 108, 255, 0.9); }
+.ill--links .nolink__pill { margin-top: 18px; }
+.ill--links .ill__cap {
+  position: static;
+  margin-top: 14px;
+  max-width: 100%;
+  line-height: 1.7;
+  letter-spacing: 0.12em;
+}
+@media (max-width: 480px) {
+  .ill--links { padding: 26px 14px 20px; }
+  .ill--links .land__grid { grid-template-columns: repeat(9, 17px); gap: 11px 8px; padding: 16px 14px; }
+  .ill--links .land__grid i { width: 17px; height: 9px; }
+  .ill--links .ill__cap { font-size: 9px; letter-spacing: 0.1em; }
+}
+@media (max-width: 360px) {
+  .ill--links .land__grid { grid-template-columns: repeat(9, 15px); gap: 10px 6px; }
+  .ill--links .land__grid i { width: 15px; height: 8px; }
 }
 
 /* ============================================================

@@ -1,4 +1,4 @@
-import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8f";
+import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8g";
 
 const root = document.documentElement;
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -254,7 +254,7 @@ function initStage(downloadOnly = false) {
   const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapter__caption, .chapters__progress"));
   const dlEl = document.querySelector("[data-gl-download]");
   const mobile = window.matchMedia("(max-width: 899px), (max-aspect-ratio: 6/5)").matches;
-  import("./stage/stage.js?v=8f")
+  import("./stage/stage.js?v=8g")
     .then(({ createStage }) =>
       createStage({
         story: { container, stage, frames, avoid, labelLayer, getProgress: () => progress.t },
@@ -340,6 +340,25 @@ function intro() {
   tl.from(lines, { yPercent: 115, duration: 1.4, stagger: 0.12 }, 0.15)
     .from(items, { autoAlpha: 0, y: 22, duration: 1.2, stagger: 0.08 }, 0.4);
   if (poster) tl.from(poster, { autoAlpha: 0, y: 60, duration: 1.6 }, 0.3);
+  // The intro and the scroll story both drive the hero copy. If scrolling
+  // starts mid-intro, finish the intro at once and hand control back to the
+  // story, so the copy can't end up stuck on screen over the phone.
+  const settle = () => {
+    if (!tl.isActive()) return;
+    tl.progress(1).kill();
+    if (storyTimeline) storyTimeline.render(storyTimeline.totalTime(), false, true);
+  };
+  const onScroll = () => {
+    if (window.scrollY > 4) {
+      settle();
+      window.removeEventListener("scroll", onScroll);
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  tl.eventCallback("onComplete", () => {
+    window.removeEventListener("scroll", onScroll);
+    if (storyTimeline && window.scrollY > 4) storyTimeline.render(storyTimeline.totalTime(), false, true);
+  });
 }
 
 /* ============================================================

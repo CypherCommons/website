@@ -24,10 +24,10 @@ import {
   CanvasTexture,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { loadPhone } from "./phone.js?v=8f";
-import { storyScreen, syncLoop, WALLET } from "./screens.js?v=8f";
-import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js?v=8f";
-import { RISE, BEATS, CHAPTERS } from "../timeline.js?v=8f";
+import { loadPhone } from "./phone.js?v=8g";
+import { storyScreen, syncLoop, WALLET } from "./screens.js?v=8g";
+import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js?v=8g";
+import { RISE, BEATS, CHAPTERS } from "../timeline.js?v=8g";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const ss = (a, b, t) => {
@@ -145,25 +145,33 @@ function framePhone(camera, W, H, cy, ph, elev, target) {
   return d;
 }
 
-// What each quality tier spends. dpr: render resolution cap. rows/segments:
-// floor pucks and their roundness. simple: no clearcoat on the floor.
-// screen: phone screen texture scale. idle/dlIdle: ms between redraws when
-// only the slow idle motion is changing (Infinity = only redraw on change).
+// What each quality tier spends. The phone is never one of the savings: every
+// tier renders at the screen's own pixel ratio (up to 2) with a full-size
+// screen texture. rows/segments: floor pucks and their roundness. simple: no
+// clearcoat on the floor. idle/dlIdle: ms between redraws when only the slow
+// idle motion is changing (Infinity = only redraw on change).
 const TIERS = {
-  high: { dpr: 1.5, aa: true, rows: 13, segments: 32, simple: false, screen: 2, idle: 42, dlIdle: 33, dlTurn: true },
-  mid: { dpr: 1.25, aa: true, rows: 12, segments: 20, simple: false, screen: 1.6, idle: 66, dlIdle: 50, dlTurn: true },
-  low: { dpr: 1, aa: false, rows: 10, segments: 14, simple: true, screen: 1.3, idle: Infinity, dlIdle: Infinity, dlTurn: false },
+  high: { rows: 13, segments: 32, simple: false, idle: 42, dlIdle: 33, dlTurn: true },
+  mid: { rows: 12, segments: 20, simple: false, idle: 66, dlIdle: 50, dlTurn: true },
+  low: { rows: 10, segments: 14, simple: true, idle: Infinity, dlIdle: Infinity, dlTurn: false },
 };
+const SCREEN_SCALE = 2;
+const NATIVE_DPR = Math.min(window.devicePixelRatio || 1, 2);
+// how far resolution may drop when frames run slow: never under 1.5 on
+// high-density screens, never under native on standard ones
+const DPR_FLOOR = NATIVE_DPR >= 1.5 ? 1.5 : NATIVE_DPR;
 
 export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false, quality = null }) {
   let tierName = (quality && quality.tier) || "high";
   const Q = { ...TIERS[tierName] };
-  const renderer = new WebGLRenderer({ antialias: Q.aa, alpha: true, powerPreference: "high-performance" });
+  // at 1.5x and above the extra pixels already smooth edges; multisampling on
+  // top of that costs a lot for little
+  const renderer = new WebGLRenderer({ antialias: NATIVE_DPR < 1.5, alpha: true, powerPreference: "high-performance" });
   // the error log calls force the GPU to finish each shader on the spot,
   // which stalls the first frame anything new is drawn
   renderer.debug.checkShaderErrors = false;
-  let dprCap = Q.dpr;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+  let dprCap = NATIVE_DPR;
+  renderer.setPixelRatio(dprCap);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.setClearColor(0x000000, 0);
@@ -200,7 +208,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   const world = new Group();
   scene.add(world);
 
-  const phone = kit.instance(Q.screen);
+  const phone = kit.instance(SCREEN_SCALE);
   const phoneRig = new Group();
   phoneRig.add(phone.group);
   world.add(phoneRig);
@@ -668,7 +676,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     dscene.environmentIntensity = 0.8;
     studio(dscene);
     const dcam = new PerspectiveCamera(24, 1, 0.1, 100);
-    const dphone = kit.instance(Math.min(1.6, Q.screen));
+    const dphone = kit.instance(SCREEN_SCALE);
     const rig = new Group();
     rig.add(dphone.group);
     const glow = glowSprite(ACCENT, 4.6, 0.22);
@@ -890,10 +898,10 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   }
   function stepDown() {
     if (quality && quality.tier !== "low") quality.down();
-    const next = Math.max(0.75, +(dprCap - 0.25).toFixed(2));
+    const next = Math.max(DPR_FLOOR, +(dprCap - 0.25).toFixed(2));
     if (next === dprCap) return;
     dprCap = next;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+    renderer.setPixelRatio(dprCap);
     const a = active;
     active = null;
     if (a) use(a);

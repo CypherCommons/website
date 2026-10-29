@@ -9,6 +9,7 @@ import {
   Vector2,
   Object3D,
   MeshPhysicalMaterial,
+  MeshStandardMaterial,
   MeshBasicMaterial,
   SpriteMaterial,
   Sprite,
@@ -92,7 +93,7 @@ export function shadowPlane(w, h = w) {
 export const PUCK = { r: 0.15, h: 0.07 };
 
 /** A flat round puck with a soft rounded edge, lying on its face (+Y up). */
-export function puckGeometry(r = PUCK.r, h = PUCK.h, bevel = 0.022) {
+export function puckGeometry(r = PUCK.r, h = PUCK.h, bevel = 0.022, segments = 32) {
   const pts = [new Vector2(0, -h / 2)];
   const steps = 6;
   for (let i = 0; i <= steps; i++) {
@@ -106,11 +107,13 @@ export function puckGeometry(r = PUCK.r, h = PUCK.h, bevel = 0.022) {
   // a shallow dish on the face catches the key light
   pts.push(new Vector2(r * 0.72, h / 2 - 0.004));
   pts.push(new Vector2(0, h / 2 - 0.008));
-  return new LatheGeometry(pts, 48);
+  return new LatheGeometry(pts, segments);
 }
 
 /** Satin dark metal shared by the field and the moving payments. */
-export function puckMaterial() {
+export function puckMaterial(simple = false) {
+  // lighter tiers drop the clearcoat layer, the costliest part per pixel
+  if (simple) return new MeshStandardMaterial({ color: 0x24242b, metalness: 0.7, roughness: 0.42, envMapIntensity: 0.42 });
   return new MeshPhysicalMaterial({
     color: 0x202026,
     metalness: 0.7,
@@ -123,8 +126,8 @@ export function puckMaterial() {
 
 /* ---------- the field of identical outputs ---------- */
 
-export function createField({ cols, rows, gap, x0, z0, skip }) {
-  const geo = puckGeometry();
+export function createField({ cols, rows, gap, x0, z0, skip, segments = 32, simple = false }) {
+  const geo = puckGeometry(undefined, undefined, undefined, segments);
   const slots = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -143,7 +146,7 @@ export function createField({ cols, rows, gap, x0, z0, skip }) {
   geo.setAttribute("aGlow", new InstancedBufferAttribute(glow, 1));
   geo.setAttribute("aGlowColor", new InstancedBufferAttribute(glowColor, 3));
 
-  const mat = puckMaterial();
+  const mat = puckMaterial(simple);
   mat.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nattribute float aGlow;\nattribute vec3 aGlowColor;\nvarying float vGlow;\nvarying vec3 vGlowColor;\nvarying vec3 vLocal;")
@@ -156,7 +159,7 @@ export function createField({ cols, rows, gap, x0, z0, skip }) {
         "#include <emissivemap_fragment>\nfloat rim = smoothstep(0.11, 0.15, length(vLocal.xz));\nfloat top = step(0.0, vLocal.y);\ntotalEmissiveRadiance += vGlowColor * vGlow * (0.35 + top * 0.25 + rim * 1.4);"
       );
   };
-  mat.customProgramCacheKey = () => "shroud-field";
+  mat.customProgramCacheKey = () => (simple ? "shroud-field-simple" : "shroud-field");
 
   const mesh = new InstancedMesh(geo, mat, count);
   mesh.frustumCulled = false;

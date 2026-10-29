@@ -1,4 +1,4 @@
-import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js";
+import { STORY_LENGTH, CHAPTERS, HERO_EXIT, SWAP, RISE } from "./timeline.js?v=8k";
 
 const root = document.documentElement;
 const { gsap, ScrollTrigger, Lenis } = window;
@@ -134,8 +134,11 @@ function fitPhone() {
     if (aside) bottom = Math.max(bottom, aside.offsetTop + aside.offsetHeight);
   });
   const h = stage.offsetHeight;
-  const top = bottom + Math.max(28, h * 0.04);
-  const ph = Math.max(200, Math.min(h - top - h * 0.12, h * 0.5));
+  const top = bottom + Math.max(18, h * 0.025);
+  // below the phone: room for the payments landing on the floor, then the
+  // caption's own band at the bottom
+  const reserve = Math.max(150, h * 0.26);
+  const ph = Math.max(170, Math.min(h - top - reserve, h * 0.4));
   stage.style.setProperty("--phone-top", `${Math.round(top)}px`);
   stage.style.setProperty("--phone-h", `${Math.round(ph)}px`);
 }
@@ -252,7 +255,7 @@ function initStage(downloadOnly = false) {
   const avoid = Array.from(story.querySelectorAll(".chapter__lead > *, .chapter__aside > *, .chapter__caption, .chapters__progress"));
   const dlEl = document.querySelector("[data-gl-download]");
   const mobile = window.matchMedia("(max-width: 899px), (max-aspect-ratio: 6/5)").matches;
-  import("./stage/stage.js")
+  import("./stage/stage.js?v=8k")
     .then(({ createStage }) =>
       createStage({
         story: { container, stage, frames, avoid, labelLayer, getProgress: () => progress.t },
@@ -260,6 +263,7 @@ function initStage(downloadOnly = false) {
         mobile,
         downloadOnly,
         reduced: !motion,
+        quality: window.__quality,
       })
     )
     .then((api) => {
@@ -292,6 +296,26 @@ function dropStage() {
   ScrollTrigger.refresh();
 }
 
+// Three.js and the model load only once their section is close to view,
+// after the device's quality tier has been settled.
+function whenNear(targets, fn) {
+  const els = targets.filter(Boolean);
+  const go = () => {
+    const q = window.__quality && window.__quality.ready;
+    (q || Promise.resolve()).then(() => whenIdle(fn));
+  };
+  if (!els.length || !("IntersectionObserver" in window)) return go();
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      go();
+    },
+    { rootMargin: "100% 0px" }
+  );
+  els.forEach((el) => io.observe(el));
+}
+
 function whenIdle(fn) {
   const go = () => ("requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 1200 }) : setTimeout(fn, 200));
   if (document.readyState === "complete") go();
@@ -317,6 +341,25 @@ function intro() {
   tl.from(lines, { yPercent: 115, duration: 1.4, stagger: 0.12 }, 0.15)
     .from(items, { autoAlpha: 0, y: 22, duration: 1.2, stagger: 0.08 }, 0.4);
   if (poster) tl.from(poster, { autoAlpha: 0, y: 60, duration: 1.6 }, 0.3);
+  // The intro and the scroll story both drive the hero copy. If scrolling
+  // starts mid-intro, finish the intro at once and hand control back to the
+  // story, so the copy can't end up stuck on screen over the phone.
+  const settle = () => {
+    if (!tl.isActive()) return;
+    tl.progress(1).kill();
+    if (storyTimeline) storyTimeline.render(storyTimeline.totalTime(), false, true);
+  };
+  const onScroll = () => {
+    if (window.scrollY > 4) {
+      settle();
+      window.removeEventListener("scroll", onScroll);
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  tl.eventCallback("onComplete", () => {
+    window.removeEventListener("scroll", onScroll);
+    if (storyTimeline && window.scrollY > 4) storyTimeline.render(storyTimeline.totalTime(), false, true);
+  });
 }
 
 /* ============================================================
@@ -444,7 +487,9 @@ function signoff() {
   }
   mark.style.setProperty("--r", "0");
   const set = (self) => mark.style.setProperty("--r", self.progress.toFixed(4));
-  ScrollTrigger.create({ trigger: mark, start: "top bottom", end: "bottom bottom", onUpdate: set, onRefresh: set });
+  // the reveal completes as the page reaches its end, wherever that falls
+  const footer = mark.closest("footer") || mark;
+  ScrollTrigger.create({ trigger: mark, start: "top bottom", endTrigger: footer, end: "bottom bottom", onUpdate: set, onRefresh: set });
 }
 
 /* ============================================================
@@ -959,10 +1004,10 @@ function boot() {
     return;
   }
   signoff();
-  if (!useStage && !motion && webglAvailable() && document.querySelector("[data-gl-download]")) whenIdle(() => initStage(true));
+  if (!useStage && !motion && webglAvailable() && document.querySelector("[data-gl-download]")) whenNear([document.querySelector("[data-gl-download]")], () => initStage(true));
   if (useStage) {
     buildStory();
-    whenIdle(() => initStage());
+    whenNear([story, document.querySelector("[data-gl-download]")], () => initStage());
     let lastW = window.innerWidth;
     let timer = 0;
     window.addEventListener("resize", () => {

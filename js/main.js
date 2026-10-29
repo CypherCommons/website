@@ -58,6 +58,7 @@
   var ctxEl = document.querySelector("[data-ctx]");
   var story = document.querySelector("[data-story]");
   var endEl = document.querySelector(".finale") || document.querySelector("footer");
+  var endTop = 0;
   var current = null;
   var maxScroll = 1;
   var geo = null;
@@ -149,9 +150,10 @@
       if (!label && el.hasAttribute("data-chapter")) label = chapter.labels[Array.prototype.indexOf.call(story.querySelectorAll("[data-chapter]"), el)];
       // side by side with the roadmap, the FAQ is part of the same read
       if (el.id === "faq" && roadmapCol && roadmapCol !== el && Math.abs(roadmapCol.getBoundingClientRect().top - r.top) < 40) return;
-      contexts.push({ el: el, top: r.top + sy, label: label });
+      contexts.push({ el: el, top: r.top + sy, bottom: r.bottom + sy, label: label });
     });
     contexts.sort(function (a, b) { return a.top - b.top; });
+    endTop = endEl ? endEl.getBoundingClientRect().top + sy : 0;
     if (story) {
       var sr = story.parentElement && story.parentElement.classList.contains("pin-spacer") ? story.parentElement : story;
       var b = sr.getBoundingClientRect();
@@ -220,20 +222,21 @@
     if (nav) nav.style.setProperty("--p", (label ? progress : 0).toFixed(3));
   }
 
-  // Sections are read live here (a handful of rects per frame), so opened
-  // accordions or late layout shifts can never leave a stale label behind.
+  // Section positions come from measureContexts (load, resize, and any
+  // change in page height such as an opened accordion), never from layout
+  // reads while scrolling.
   function findContext(y) {
     var vh = window.innerHeight;
-    var probe = vh * 0.4;
-    if (story && chapter.stage && y + probe < chapter.bottom) {
+    var probe = y + vh * 0.4;
+    if (story && chapter.stage && probe < chapter.bottom) {
       if (chapter.index < 0) return null;
       return { label: chapter.labels[chapter.index], progress: chapter.progress };
     }
     // once the sign-off takes over most of the screen, the wordmark returns
-    if (endEl && endEl.getBoundingClientRect().top < vh * 0.7) return null;
+    if (endTop && y + vh * 0.7 > endTop) return null;
     for (var i = contexts.length - 1; i >= 0; i--) {
-      var r = contexts[i].el.getBoundingClientRect();
-      if (probe >= r.top && probe < r.bottom) return { label: contexts[i].label, progress: Math.min(1, (probe - r.top) / r.height) };
+      var c = contexts[i];
+      if (probe >= c.top && probe < c.bottom) return { label: c.label, progress: Math.min(1, (probe - c.top) / (c.bottom - c.top)) };
     }
     return null;
   }

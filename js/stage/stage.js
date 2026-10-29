@@ -24,10 +24,10 @@ import {
   CanvasTexture,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { loadPhone } from "./phone.js";
-import { storyScreen, syncLoop, WALLET } from "./screens.js";
-import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js";
-import { RISE, BEATS, CHAPTERS } from "../timeline.js";
+import { loadPhone } from "./phone.js?v=8k";
+import { storyScreen, syncLoop, WALLET } from "./screens.js?v=8k";
+import { createField, createFloorRing, glowSprite, shadowPlane, puckGeometry, LAVENDER, ACCENT, GREEN } from "./objects.js?v=8k";
+import { RISE, BEATS, CHAPTERS } from "../timeline.js?v=8k";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const ss = (a, b, t) => {
@@ -84,7 +84,8 @@ function scrollYaw(t) {
 // where each beat lands, per layout (nearest open slot is used)
 const TARGETS = {
   desktop: { reuse: [1.6, 1.25], own: [[-2.2, 0.85], [2.0, 0.15], [-0.95, 1.85]] },
-  mobile: { reuse: [0.95, 1.75], own: [[-1.25, 1.45], [1.25, 1.15], [0.15, 2.3]] },
+  // on phones every landing stays in the band between the phone and the caption
+  mobile: { reuse: [0.95, 1.0], own: [[-1.2, 0.8], [1.2, 0.55], [0.1, 1.25]] },
 };
 
 // gentle chapter poses: [t, yaw, pitch]
@@ -145,9 +146,32 @@ function framePhone(camera, W, H, cy, ph, elev, target) {
   return d;
 }
 
-export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false }) {
-  const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+// What each quality tier spends. The phone is never one of the savings: every
+// tier renders at the screen's own pixel ratio (up to 2) with a full-size
+// screen texture. rows/segments: floor pucks and their roundness. simple: no
+// clearcoat on the floor. idle/dlIdle: ms between redraws when only the slow
+// idle motion is changing.
+const TIERS = {
+  high: { rows: 13, segments: 32, simple: false, idle: 42, dlIdle: 33, dlTurn: true },
+  mid: { rows: 12, segments: 20, simple: false, idle: 66, dlIdle: 50, dlTurn: true },
+  low: { rows: 10, segments: 14, simple: true, idle: 250, dlIdle: 250, dlTurn: false },
+};
+const SCREEN_SCALE = 2;
+// The phone is always drawn at the screen's own density (up to 2x); slow
+// frames are answered with lighter background work, never a softer phone.
+const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
+const NATIVE_DPR = pixelRatio();
+
+export async function createStage({ story, download, mobile, downloadOnly = false, reduced = false, quality = null }) {
+  let tierName = (quality && quality.tier) || "high";
+  const Q = { ...TIERS[tierName] };
+  // at 1.5x and above the extra pixels already smooth edges; multisampling on
+  // top of that costs a lot for little
+  const renderer = new WebGLRenderer({ antialias: NATIVE_DPR < 1.5, alpha: true, powerPreference: "high-performance" });
+  // the error log calls force the GPU to finish each shader on the spot,
+  // which stalls the first frame anything new is drawn
+  renderer.debug.checkShaderErrors = false;
+  renderer.setPixelRatio(NATIVE_DPR);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.setClearColor(0x000000, 0);
@@ -184,7 +208,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   const world = new Group();
   scene.add(world);
 
-  const phone = kit.instance(2);
+  const phone = kit.instance(SCREEN_SCALE);
   const phoneRig = new Group();
   phoneRig.add(phone.group);
   world.add(phoneRig);
@@ -196,7 +220,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   phoneRig.add(emitter);
 
   // the field of identical outputs, with open floor under the phone
-  const field = createField({ ...GRID, skip: (x, z) => Math.hypot(x, z * 1.15) < CLEAR });
+  const field = createField({ ...GRID, rows: Q.rows, segments: Q.segments, simple: Q.simple, skip: (x, z) => Math.hypot(x, z * 1.15) < CLEAR });
   const fieldGroup = new Group();
   fieldGroup.position.y = FLOOR;
   fieldGroup.add(field.mesh);
@@ -228,7 +252,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   const foundMat = moverMat.clone();
   foundMat.color.set(0xbbf7d0);
   foundMat.emissive.set(0x22c55e);
-  const moverGeo = puckGeometry(0.15, 0.07, 0.022);
+  const moverGeo = puckGeometry(0.15, 0.07, 0.022, Q.segments);
   const movers = [0, 1, 2].map(() => {
     const m = new Mesh(moverGeo, moverMat);
     const halo = glowSprite(ACCENT, 0.9, 0.5);
@@ -418,9 +442,9 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   }
 
   function measure() {
-    const r = story.container.getBoundingClientRect();
-    W = Math.max(1, r.width);
-    H = Math.max(1, r.height);
+    // layout size, unaffected by any transform on the way in
+    W = Math.max(1, story.container.clientWidth);
+    H = Math.max(1, story.container.clientHeight);
     const hero = boxIn(story.frames.hero);
     const chap = boxIn(story.frames.chapter);
     frames.hero = { cy: hero.y + hero.h / 2, h: hero.h || 1 };
@@ -557,7 +581,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
 
     // chapter 2: the one reusable address
     spLabel.opacity = ss(beats.broadcast[0] - 0.1, beats.broadcast[0] + 0.06, t) * (1 - ss(beats.land[0] - beats.landFlight - 0.1, beats.land[0] - beats.landFlight, t));
-    spLabel.pos.set(0, FLOOR - 0.02, mobile ? 1.1 : 1.0);
+    spLabel.pos.set(0, FLOOR - 0.02, mobile ? 0.7 : 1.0);
 
     // chapter 3: each payment leaves the phone and lands somewhere new
     if (!usedMovers) {
@@ -652,7 +676,7 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     dscene.environmentIntensity = 0.8;
     studio(dscene);
     const dcam = new PerspectiveCamera(24, 1, 0.1, 100);
-    const dphone = kit.instance(1.6);
+    const dphone = kit.instance(SCREEN_SCALE);
     const rig = new Group();
     rig.add(dphone.group);
     const glow = glowSprite(ACCENT, 4.6, 0.22);
@@ -663,9 +687,8 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   }
   function measureDownload() {
     if (!dl) return;
-    const r = download.container.getBoundingClientRect();
-    dl.W = Math.max(1, r.width);
-    dl.H = Math.max(1, r.height);
+    dl.W = Math.max(1, download.container.clientWidth);
+    dl.H = Math.max(1, download.container.clientHeight);
   }
   /* ---------- download phone: idles on its own, turns by hand ---------- */
   const spin = { yaw: 0, pitch: 0, vy: 0, vp: 0, drag: false, idle: 1, lastX: 0, lastY: 0, lastT: 0, at: 0, moving: false };
@@ -770,8 +793,9 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     }
     spin.moving = moving;
     // idle: a slow turn either side of front, faded in after a drag
-    const idleYaw = reduced ? 0 : Math.sin((time * TAU) / 9) * 0.55 * spin.idle;
-    const idleBob = reduced ? 0 : Math.sin(time * 0.6) * 0.02;
+    const still = reduced || !Q.dlTurn;
+    const idleYaw = still ? 0 : Math.sin((time * TAU) / 9) * 0.55 * spin.idle;
+    const idleBob = still ? 0 : Math.sin(time * 0.6) * 0.02;
     rig.rotation.set(0.02 + spin.pitch, spin.yaw + idleYaw, 0);
     rig.position.y = idleBob;
     dl.phone.screen.update(syncLoop(time));
@@ -801,12 +825,16 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
     if (view === "download") measureDownload();
     const w = view === "story" ? W : dl.W;
     const h = view === "story" ? H : dl.H;
+    renderer.setPixelRatio(pixelRatio());
     renderer.setSize(w, h, false);
     // never show the other view's last frame, even for one composite
     renderer.clear();
     dirty = true;
+    // a moved canvas can drop its first frame (WebKit), so draw a few
+    settle = 8;
   }
 
+  let settle = 0;
   function frame(now) {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -829,8 +857,10 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
       pointer.sx += (pointer.x - pointer.sx) * Math.min(1, dt * 1.2);
       pointer.sy += (pointer.y - pointer.sy) * Math.min(1, dt * 1.2);
       if (Math.abs(pointer.sx - px) + Math.abs(pointer.sy - py) > 0.0005) moving = true;
-      // the sway only needs ~30fps; scroll and transitions get every frame
-      if (!moving && !dirty && now - lastRender < 32) return;
+      // the idle sway needs few frames; scroll and transitions get every one
+      if (settle > 0) (settle--, (dirty = true));
+      if (!moving && !dirty && now - lastRender < Q.idle) return;
+      watchPace(now, moving);
       dirty = false;
       lastRender = now;
       updateStory(smoothT, time, intro);
@@ -839,12 +869,49 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
       placeLabels();
     } else {
       // every frame while it's being turned; ~30fps while idling
-      if (!dirty && !spin.drag && !spin.moving && (reduced || now - lastRender < 32)) return;
+      if (settle > 0) (settle--, (dirty = true));
+      const turning = spin.drag || spin.moving;
+      if (!dirty && !turning && (reduced || now - lastRender < Q.dlIdle)) return;
+      watchPace(now, turning);
       dirty = false;
       lastRender = now;
       updateDownload(time);
       renderer.render(dl.scene, dl.camera);
     }
+  }
+
+  /* ---------- if frames drop while moving, render less ---------- */
+  const pace = { last: 0, ema: 16, n: 0, cool: 0, active: false };
+  function watchPace(now, active) {
+    const gap = now - pace.last;
+    const was = pace.active;
+    pace.last = now;
+    pace.active = active;
+    // only judge back-to-back frames while something is actually moving
+    if (!active || !was || gap > 2000) {
+      pace.n = 0;
+      return;
+    }
+    pace.ema = pace.n ? pace.ema + (gap - pace.ema) * 0.08 : gap;
+    pace.n++;
+    // a long run of slightly slow frames, or a few very slow ones
+    const slow = (pace.n >= 45 && pace.ema > 30) || (pace.n >= 6 && pace.ema > 120);
+    if (!slow || now < pace.cool) return;
+    pace.n = 0;
+    pace.cool = now + 2500;
+    stepDown();
+  }
+  function stepDown() {
+    if (quality && quality.tier !== "low") quality.down();
+  }
+  if (quality && quality.on) {
+    quality.on((t) => {
+      tierName = t;
+      // the slower idle pacing of a lower tier applies right away
+      Q.idle = Math.max(Q.idle, TIERS[t].idle);
+      Q.dlIdle = Math.max(Q.dlIdle, TIERS[t].dlIdle);
+      if (!TIERS[t].dlTurn) Q.dlTurn = false;
+    });
   }
 
   function start() {
@@ -881,10 +948,16 @@ export async function createStage({ story, download, mobile, downloadOnly = fals
   frameStory(smoothT);
   fieldGroup.visible = true;
   movers.forEach((m) => (m.visible = true));
-  renderer.compile(scene, camera);
+  // compiled up front (in parallel where the browser allows), so scrolling
+  // never waits on a shader
+  const parallel = renderer.compileAsync && renderer.extensions.has("KHR_parallel_shader_compile");
+  // drawing once as well makes the driver finish linking now, not on the
+  // first frame each object appears
+  const warm = (sc, cam) => (parallel ? renderer.compileAsync(sc, cam) : Promise.resolve(renderer.compile(sc, cam))).then(() => renderer.render(sc, cam));
+  await warm(scene, camera);
   if (dl) {
     updateDownload(0);
-    renderer.compile(dl.scene, dl.camera);
+    await warm(dl.scene, dl.camera);
   }
   movers.forEach((m) => (m.visible = false));
   updateStory(smoothT, performance.now() / 1000, 0);

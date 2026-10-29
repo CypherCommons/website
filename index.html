@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" href="assets/img/logo.png" />
   <link rel="preload" href="assets/fonts/ClashGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=8k" />
   <script>
     (function (root) {
       root.classList.add("js");
@@ -23,6 +23,49 @@
         // never leave the hero hidden if the intro doesn't run
         setTimeout(function () { root.classList.remove("intro"); }, 3500);
       }
+
+      // Quality tier: high, mid or low. A first guess from the device, then a
+      // short frame-rate sample after load; the 3D steps it down later if
+      // frames start dropping.
+      var tiers = ["low", "mid", "high"];
+      var n = navigator;
+      var cores = n.hardwareConcurrency || 4;
+      var memory = n.deviceMemory || 8;
+      var saveData = !!(n.connection && n.connection.saveData);
+      var coarse = window.matchMedia("(pointer: coarse)").matches;
+      var small = Math.min(screen.width, screen.height) < 600;
+      var level = saveData || cores <= 2 || memory <= 2 ? 0 : coarse || small || cores <= 4 || memory <= 4 ? 1 : 2;
+      var listeners = [];
+      var set = function (next) {
+        next = Math.max(0, Math.min(2, next));
+        if (next === level && root.getAttribute("data-tier")) return;
+        level = next;
+        root.setAttribute("data-tier", tiers[level]);
+        listeners.forEach(function (fn) { fn(tiers[level]); });
+      };
+      var ready;
+      var done = new Promise(function (r) { ready = r; });
+      window.__quality = {
+        get tier() { return tiers[level]; },
+        down: function () { if (level > 0) set(level - 1); },
+        on: function (fn) { listeners.push(fn); },
+        ready: done,
+      };
+      set(level);
+      window.addEventListener("load", function () {
+        var times = [];
+        var start = performance.now();
+        var tick = function (t) {
+          times.push(t);
+          if (t - start < 900 && times.length < 60) return requestAnimationFrame(tick);
+          var gaps = times.slice(1).map(function (v, i) { return v - times[i]; }).sort(function (a, b) { return a - b; });
+          var median = gaps[Math.floor(gaps.length / 2)] || 16;
+          if (median > 40) set(level - 2);
+          else if (median > 24) set(level - 1);
+          ready(tiers[level]);
+        };
+        requestAnimationFrame(tick);
+      });
     })(document.documentElement);
   </script>
   <script type="importmap">
@@ -45,7 +88,6 @@
     <symbol id="i-arrows-split" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M16 3h5v5"/> <path vector-effect="non-scaling-stroke" d="M8 3H3v5"/> <path vector-effect="non-scaling-stroke" d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/> <path vector-effect="non-scaling-stroke" d="m15 9 6-6"/></g></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M20 6 9 17l-5-5"/></g></symbol>
     <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect vector-effect="non-scaling-stroke" width="14" height="14" x="8" y="8" rx="2" ry="2"/> <path vector-effect="non-scaling-stroke" d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></g></symbol>
-    <symbol id="i-download-simple" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 15V3"/> <path vector-effect="non-scaling-stroke" d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/> <path vector-effect="non-scaling-stroke" d="m7 10 5 5 5-5"/></g></symbol>
     <symbol id="i-eye-slash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/> <path vector-effect="non-scaling-stroke" d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/> <path vector-effect="non-scaling-stroke" d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/> <path vector-effect="non-scaling-stroke" d="m2 2 20 20"/></g></symbol>
     <symbol id="i-hard-drives" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M10 16h.01"/> <path vector-effect="non-scaling-stroke" d="M2.212 11.577a2 2 0 0 0-.212.896V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.527a2 2 0 0 0-.212-.896L18.55 5.11A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/> <path vector-effect="non-scaling-stroke" d="M21.946 12.013H2.054"/> <path vector-effect="non-scaling-stroke" d="M6 16h.01"/></g></symbol>
     <symbol id="i-identification-card" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M13 19a4 4 0 00-8 0"/> <path vector-effect="non-scaling-stroke" d="M16 10h2"/> <path vector-effect="non-scaling-stroke" d="M16 14h2"/> <circle vector-effect="non-scaling-stroke" cx="9" cy="12" r="3"/> <rect vector-effect="non-scaling-stroke" x="2" y="5" width="20" height="14" rx="2"/></g></symbol>
@@ -119,13 +161,13 @@
             </h1>
             <p class="hero__sub" data-hero-item>One reusable address. A unique, unlinkable output <span class="nowrap">on-chain</span> for every payment, powered by silent payments.</p>
             <div class="hero__actions" data-hero-item>
-              <a class="btn btn--primary" href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener" data-magnetic>
-                <svg class="icon" aria-hidden="true"><use href="#i-google-play-logo"/></svg>
-                <span>Get it on Google Play</span>
-              </a>
-              <a class="btn btn--ghost" href="https://apps.apple.com/app/shroud-wallet/id6821538806" target="_blank" rel="noopener" data-magnetic>
+              <a class="btn btn--store" href="https://apps.apple.com/us/app/shroud-wallet/id6821538806" target="_blank" rel="noopener" data-magnetic>
                 <svg class="icon" aria-hidden="true"><use href="#i-app-store-logo"/></svg>
-                <span>Download on the App Store</span>
+                <span class="store__text"><small>Download on the</small><strong>App Store</strong></span>
+              </a>
+              <a class="btn btn--store" href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener" data-magnetic>
+                <svg class="icon" aria-hidden="true"><use href="#i-google-play-logo"/></svg>
+                <span class="store__text"><small>Get it on</small><strong>Google Play</strong></span>
               </a>
             </div>
           </div>
@@ -269,7 +311,7 @@
                   <div class="surf"><span class="surf__tag">bio</span><span class="surf__row"><i class="surf__avatar"></i><i class="surf__line"></i></span><span class="surf__chip">sp1qq2e3…x7v4</span></div>
                   <div class="surf"><span class="surf__tag">invoice</span><i class="surf__line surf__line--short"></i><span class="surf__chip">sp1qq2e3…x7v4</span></div>
                 </div>
-                <p class="ill__cap">scan key + spend key · publish anywhere</p>
+                <p class="ill__cap"><span>scan key + spend key</span> · <span>publish anywhere</span></p>
               </div>
             </figure>
           </li>
@@ -350,7 +392,7 @@
                   <span class="land__fly" data-fly></span>
                 </div>
                 <span class="nolink__pill"><svg class="icon"><use href="#i-check"/></svg>0 links found</span>
-                <p class="ill__cap">ordinary taproot outputs · nothing connects them</p>
+                <p class="ill__cap"><span>ordinary taproot outputs</span> · <span>nothing connects them</span></p>
               </div>
             </figure>
           </li>
@@ -559,24 +601,19 @@
 
         <div class="download__grid">
           <ul class="download__list" data-stagger>
-            <li><a class="dl-row dl-row--primary" href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener" data-glow>
-              <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-google-play-logo"/></svg></span>
-              <span class="dl-row__meta"><strong>Get it on Google Play</strong><small>Android 10+</small></span>
+            <li><a class="dl-row dl-row--primary" href="https://apps.apple.com/us/app/shroud-wallet/id6821538806" target="_blank" rel="noopener" data-glow>
+              <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-app-store-logo"/></svg></span>
+              <span class="dl-row__meta"><strong><span class="dl-row__pre">Download on the </span>App Store</strong><small>iOS 16+</small></span>
               <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
             </a></li>
-            <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
-              <span class="dl-row__icon" aria-hidden="true"><svg class="icon"><use href="#i-download-simple"/></svg></span>
-              <span class="dl-row__meta"><strong>Direct APK</strong><small>Signed · reproducible · v1.0.2</small></span>
+            <li><a class="dl-row dl-row--primary" href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener" data-glow>
+              <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-google-play-logo"/></svg></span>
+              <span class="dl-row__meta"><strong><span class="dl-row__pre">Get it on </span>Google Play</strong><small>Android 10+</small></span>
               <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
             </a></li>
             <li><a class="dl-row" href="#" data-glow data-noop title="Coming soon — not yet published" aria-disabled="true">
               <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-fdroid"/></svg></span>
               <span class="dl-row__meta"><strong>F-Droid</strong><small>Android · FOSS repository</small></span>
-              <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
-            </a></li>
-            <li><a class="dl-row" href="https://apps.apple.com/app/shroud-wallet/id6821538806" target="_blank" rel="noopener" data-glow>
-              <span class="dl-row__icon dl-row__icon--brand" aria-hidden="true"><svg class="icon"><use href="#i-app-store-logo"/></svg></span>
-              <span class="dl-row__meta"><strong>App Store</strong><small>iOS 16+</small></span>
               <span class="dl-row__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
             </a></li>
           </ul>
@@ -680,7 +717,7 @@
                   <span class="acc__label">Which devices are supported?</span>
                   <span class="acc__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span>
                 </button></h4>
-                <div class="acc__panel" id="faq-5" role="region" aria-labelledby="faq-5-btn"><div class="acc__inner"><p>Android 10+ via direct APK, F-Droid, or the Play Store, and iOS 16+ via the App Store.</p></div></div>
+                <div class="acc__panel" id="faq-5" role="region" aria-labelledby="faq-5-btn"><div class="acc__inner"><p>Android 10+ via the Play Store or F-Droid, and iOS 16+ via the App Store.</p></div></div>
               </div>
               <div class="acc__item">
                 <h4 class="acc__heading"><button class="acc__btn" type="button" aria-expanded="false" aria-controls="faq-6" id="faq-6-btn">
@@ -728,6 +765,8 @@
         <a href="#features">Features</a>
         <a href="#compare">Compare</a>
         <a href="#download">Download</a>
+        <a href="https://apps.apple.com/us/app/shroud-wallet/id6821538806" target="_blank" rel="noopener">App Store</a>
+        <a href="https://play.google.com/store/apps/details?id=com.shroudwallet.app" target="_blank" rel="noopener">Google Play</a>
         <a href="#roadmap">Roadmap</a>
       </nav>
       <nav class="footer__col" aria-label="Project">
@@ -740,31 +779,33 @@
         <a href="support/">Support</a>
         <a href="#" data-noop title="Coming soon">MIT License</a>
       </nav>
+      <div class="signoff" data-signoff aria-hidden="true">
+        <svg class="signoff__mark" viewBox="88 88 336 336">
+          <defs>
+            <radialGradient id="signoff-light" cx="50%" cy="38%" r="65%">
+              <stop offset="0" stop-color="#c4b5fd" stop-opacity=".55"/>
+              <stop offset=".55" stop-color="#8b6cff" stop-opacity=".18"/>
+              <stop offset="1" stop-color="#8b6cff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g class="signoff__inner">
+            <use class="signoff__fill" href="#m-logo" x="88" y="88" width="336" height="336"/>
+            <use class="signoff__glow" href="#m-logo" x="88" y="88" width="336" height="336" fill="url(#signoff-light)"/>
+            <use class="signoff__line" href="#m-logo" x="88" y="88" width="336" height="336"/>
+          </g>
+        </svg>
+      </div>
     </div>
     <div class="footer__bottom">
       <p>© 2026 SHROUD</p>
-    </div>
-    <div class="signoff" data-signoff aria-hidden="true">
-      <svg class="signoff__mark" viewBox="88 88 336 336">
-        <defs>
-          <radialGradient id="signoff-light" cx="50%" cy="38%" r="65%">
-            <stop offset="0" stop-color="#c4b5fd" stop-opacity=".55"/>
-            <stop offset=".55" stop-color="#8b6cff" stop-opacity=".18"/>
-            <stop offset="1" stop-color="#8b6cff" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <use class="signoff__fill" href="#m-logo" x="88" y="88" width="336" height="336"/>
-        <use class="signoff__glow" href="#m-logo" x="88" y="88" width="336" height="336" fill="url(#signoff-light)"/>
-        <use class="signoff__line" href="#m-logo" x="88" y="88" width="336" height="336"/>
-      </svg>
     </div>
   </footer>
 
   <script src="assets/vendor/gsap.min.js" defer></script>
   <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/vendor/lenis.min.js" defer></script>
-  <script src="js/main.js" defer></script>
-  <script src="js/veil.js" defer></script>
-  <script type="module" src="js/site.js"></script>
+  <script src="js/main.js?v=8k" defer></script>
+  <script src="js/veil.js?v=8k" defer></script>
+  <script type="module" src="js/site.js?v=8k"></script>
 </body>
 </html>
